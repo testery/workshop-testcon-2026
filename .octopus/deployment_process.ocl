@@ -1,0 +1,94 @@
+step "github-status-update-pending" {
+    condition = "Always"
+    name = "GitHub - Status update - Pending"
+
+    action {
+        properties = {
+            commit = "#{Octopus.Release.Git.CommitHash}"
+            mode = "pending"
+            Octopus.Action.ExecutionTimeout.Minutes = "2"
+            Octopus.Action.Template.Id = "ActionTemplates-141"
+            Octopus.Action.Template.Version = "3"
+        }
+        worker_pool = "ubuntu"
+    }
+}
+
+step "deploy-example-webapp" {
+    name = "Deploy Example Webapp"
+
+    action {
+        action_type = "Octopus.AwsRunScript"
+        environments = ["development", "production"]
+        properties = {
+            Octopus.Action.Aws.AssumeRole = "False"
+            Octopus.Action.Aws.Region = "#{AWS.Region}"
+            Octopus.Action.AwsAccount.UseInstanceRole = "False"
+            Octopus.Action.AwsAccount.Variable = "AWS Account"
+            Octopus.Action.ExecutionTimeout.Minutes = "15"
+            Octopus.Action.GitRepository.Source = "Project"
+            Octopus.Action.Script.ScriptFileName = "#{Octopus.Project.Git.BasePath}/.octopus/processes/deploy.sh"
+            Octopus.Action.Script.ScriptSource = "GitRepository"
+            OctopusUseBundledTooling = "False"
+        }
+        worker_pool = "ubuntu"
+
+        container {
+            feed = "docker"
+            image = "octopusdeploy/worker-tools:6.5.0-ubuntu.22.04"
+        }
+
+        packages "example-webapp-deploy" {
+            acquisition_location = "Server"
+            feed = "octopus-server-built-in"
+            package_id = "example-webapp-deploy"
+            properties = {
+                Extract = "True"
+                SelectionMode = "immediate"
+            }
+        }
+    }
+}
+
+step "testery-report-deployment" {
+    name = "Testery - Report Deployment"
+
+    action {
+        properties = {
+            Octopus.Action.ExecutionTimeout.Minutes = "2"
+            Octopus.Action.Template.Id = "ActionTemplates-162"
+            Octopus.Action.Template.Version = "5"
+            TesteryBuildId = "#{Octopus.Release.Number}"
+            TesteryEnvironmentKey = "#{Octopus.Environment.Slug}"
+            TesteryFailOnFailure? = "False"
+            TesteryGitBranch? = "#{Octopus.Release.Git.BranchName}"
+            TesteryGitCommit? = "#{Octopus.Release.Git.CommitHash}"
+            TesteryGitOwner? = "harbertc"
+            TesteryGitProvider? = "GitHub"
+            TesteryGitRepo? = "example-webapp"
+            TesteryOutput = "pretty"
+            TesteryProjectKey = "example-webapp"
+            TesterySkipVCSUpdates? = "False"
+            TesteryToken = "#{Testery.Token}"
+            TesteryWaitForResults? = "False"
+        }
+        worker_pool = "ubuntu"
+        worker_pool_variable = ""
+    }
+}
+
+step "github-status-update-finish" {
+    condition = "Always"
+    name = "GitHub - Status update - Finish"
+
+    action {
+        properties = {
+            commit = "#{Octopus.Release.Git.CommitHash}"
+            mode = "result"
+            Octopus.Action.ExecutionTimeout.Minutes = "2"
+            Octopus.Action.Template.Id = "ActionTemplates-141"
+            Octopus.Action.Template.Version = "3"
+        }
+        worker_pool = "ubuntu"
+    }
+}

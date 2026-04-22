@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pytest)",
+      "Bash(code --command python.testing.runAllTests)",
+      "Bash(ls:*)",
+      "Bash(python:*)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep"
+    ]
+  }
+}

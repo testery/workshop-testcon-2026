@@ -1,0 +1,43 @@
+variable "AWS Account" {
+    type = "AmazonWebServicesAccount"
+
+    value "aws-octopus" {
+        description = ""
+    }
+}
+
+variable "AWS.Region" {
+    value "us-east-1" {
+        description = ""
+    }
+}
+
+variable "Project.AWS.ECRRegistry" {
+    value "498550306017.dkr.ecr.us-east-1.amazonaws.com" {
+        process = ["deployment-process"]
+    }
+}
+
+variable "Project.AWS.DevCluster" {
+    value "testery-dev" {
+        description = ""
+    }
+}
+
+variable "Project.AWS.ProdCluster" {
+    value "testery-prod" {
+        description = ""
+    }
+}
+
+variable "Project.GitHub.Repo" {
+    value "example-webapp" {}
+}
+
+variable "Testery.Token" {
+    type = "Sensitive"
+
+    value "" {
+        description = "Testery API token for reporting deployments"
+    }
+}

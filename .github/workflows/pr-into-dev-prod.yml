@@ -1,0 +1,116 @@
+name: Build and create release for PR branch
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '.gitignore'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  id-token: write # Required by Octopus login action
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-24.04
+    env:
+      BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+      GIT_HASH: ${{ github.event.pull_request.head.sha }}
+      OCTOPUS_SPACE: 'Default'
+      PACKAGE_ID: 'example-webapp-deploy'
+      TESTERY_TOKEN: ${{ secrets.TESTERY_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      ECR_REGISTRY: ${{ vars.AWS_ECR_REGISTRY }}
+      AWS_DEFAULT_REGION: 'us-east-1'
+      AWS_DEFAULT_OUTPUT: 'json'
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+
+    steps:
+    - name: Safe branch name
+      run: |
+        SAFE_PREFIX="${BRANCH_NAME//\//-}"
+        SAFE_PREFIX="${SAFE_PREFIX,,}"
+        SAFE_PREFIX="${SAFE_PREFIX//./-}"
+        echo "SAFE_BRANCH_NAME=${SAFE_PREFIX}" >> $GITHUB_ENV
+        echo "GIT_HASH_SHORT=${GIT_HASH::7}" >> $GITHUB_ENV
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # for tags
+
+    - name: Get release version
+      id: get_release_version
+      uses: paulhatch/semantic-version@v6.0.2
+      with:
+        tag_prefix: ""
+        version_format: "${major}.${minor}.${patch}-${{ env.SAFE_BRANCH_NAME }}.${{ env.GIT_HASH_SHORT }}"
+
+    - name: Get version
+      id: get_version
+      run: |
+        echo "VERSION=${{ steps.get_release_version.outputs.version }}" >> $GITHUB_ENV
+        echo "version=${{ steps.get_release_version.outputs.version }}" >> $GITHUB_OUTPUT
+
+    - name: Build and push API Docker image
+      if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
+      run: |
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
+        docker build -t "$ECR_REGISTRY/example-webapp-api:$VERSION" ./api
+        docker push "$ECR_REGISTRY/example-webapp-api:$VERSION"
+
+    - name: Build and push web Docker image
+      if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
+      run: |
+        docker build -t "$ECR_REGISTRY/example-webapp-web:$VERSION" ./web
+        docker push "$ECR_REGISTRY/example-webapp-web:$VERSION"
+
+    - name: Log into Octopus Deploy 🐙
+      if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
+      uses: OctopusDeploy/login@v2
+      with:
+        server: ${{ vars.OCTOPUS_DOMAIN }}
+        service_account_id: ${{ secrets.OCTOPUS_SERVICE_ID }}
+
+    - name: Create a build Zip package 🐙
+      if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
+      uses: OctopusDeploy/create-zip-package-action@v4
+      with:
+        package_id: ${{ env.PACKAGE_ID }}
+        version: ${{ env.VERSION }}
+        output_folder: './packages/'
+        base_path: './'
+        files: |
+          docker-compose.yml
+          .octopus/**/*
+
+    - name: Push packages to Octopus Deploy 🐙
+      if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
+      uses: OctopusDeploy/push-package-action@v4
+      with:
+        packages: |
+          packages/**/*.zip
+
+    - name: Push build information to Octopus Deploy 🐙
+      if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
+      uses: OctopusDeploy/push-build-information-action@v4
+      with:
+        packages: |
+          ${{ env.PACKAGE_ID }}
+        version: ${{ env.VERSION }}
+
+    - name: Create a release in Octopus Deploy 🐙
+      if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
+      uses: OctopusDeploy/create-release-action@v4
+      with:
+        project: 'Example Webapp Deploy'
+        release_number: ${{ env.VERSION }}
+        channel: 'Default'
+        git_ref: ${{ env.BRANCH_NAME }}
+        git_commit: ${{ env.GIT_HASH }}
+        packages: |
+          ${{ env.PACKAGE_ID }}:${{ env.VERSION }}
