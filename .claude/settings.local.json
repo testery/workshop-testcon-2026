@@ -9,7 +9,10 @@
       "Write",
       "Edit",
       "Glob",
-      "Grep"
+      "Grep",
+      "Bash(npx playwright *)",
+      "Bash(npx bddgen *)",
+      "mcp__claude_ai_Testery__list_test_runs"
     ]
   }
 }

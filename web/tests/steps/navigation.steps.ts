@@ -29,3 +29,15 @@ Then(
     await expect(page.getByRole("button", { name: new RegExp(name) })).toBeVisible();
   },
 );
+
+Given("I am unauthenticated", async ({ page }) => {
+  await page.context().clearCookies();
+});
+
+When("I visit a secure page", async ({ page }) => {
+  await page.goto("/");
+});
+
+Then("I am redirected to the login page", async ({ page }) => {
+  await expect(page).toHaveURL(/login/);
+});

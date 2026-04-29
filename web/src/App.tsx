@@ -7,6 +7,7 @@ import OrdersPage from "./OrdersPage";
 import AgentsPage from "./AgentsPage";
 import SessionsPage from "./SessionsPage";
 import GlobalAuditPage from "./GlobalAuditPage";
+import LoginPage from "./LoginPage";
 import {
   iconStyle,
   menuItemStyle,
@@ -31,6 +32,7 @@ type AuthUser = { name?: string; email?: string; picture?: string };
 export default function App() {
   const [view, setView] = useState<View>("items");
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +40,8 @@ export default function App() {
     fetch("/api/auth/me", { credentials: "include" })
       .then((r) => r.json())
       .then((d) => setUser(d.authenticated ? d.user : null))
-      .catch(() => setUser(null));
+      .catch(() => setUser(null))
+      .finally(() => setAuthChecked(true));
   }, []);
 
   useEffect(() => {
@@ -62,6 +65,9 @@ export default function App() {
   };
 
   const navBtn = (v: View) => (view === v ? sideLinkActiveStyle : sideLinkStyle);
+
+  if (!authChecked) return null;
+  if (!user) return <LoginPage />;
 
   return (
     <div
