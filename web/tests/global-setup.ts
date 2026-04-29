@@ -1,7 +1,7 @@
 import { chromium, type FullConfig } from "@playwright/test";
 
 export default async function globalSetup(config: FullConfig) {
-  const baseURL = config.projects[0].use.baseURL ?? "http://localhost:5174";
+  const baseURL = config.projects[0].use.baseURL ?? "http://localhost:5173";
   const browser = await chromium.launch();
   const context = await browser.newContext();
   const page = await context.newPage();

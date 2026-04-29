@@ -41,3 +41,9 @@ When("I visit a secure page", async ({ page }) => {
 Then("I am redirected to the login page", async ({ page }) => {
   await expect(page).toHaveURL(/login/);
 });
+
+Then("I should see the count of employees", async ({ page }) => {
+  const count = page.getByTestId("employee-count");
+  await expect(count).toBeVisible();
+  await expect(count).toHaveText(/^\d+$/);
+});

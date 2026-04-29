@@ -13,3 +13,9 @@ Feature: App navigation
     Given I am unauthenticated
     When I visit a secure page
     Then I am redirected to the login page
+
+  Scenario: User Visits the Dashboard
+    Given I am on the home page
+    When I click the "Dashboard" menu item
+    Then I should see the "Dashboard" heading
+    And I should see the count of employees

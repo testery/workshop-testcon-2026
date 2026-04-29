@@ -11,7 +11,7 @@ export default defineConfig({
   reporter: "html",
   globalSetup: "./tests/global-setup.ts",
   use: {
-    baseURL: "http://localhost:5174",
+    baseURL: "http://localhost:5173",
     trace: "on-first-retry",
     video: "on",
     storageState: "tests/.auth/storage.json",
@@ -24,7 +24,7 @@ export default defineConfig({
   ],
   webServer: {
     command: "npm run dev",
-    url: "http://localhost:5174",
+    url: "http://localhost:5173",
     reuseExistingServer: !process.env.CI,
   },
 });

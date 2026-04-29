@@ -8,6 +8,7 @@ import AgentsPage from "./AgentsPage";
 import SessionsPage from "./SessionsPage";
 import GlobalAuditPage from "./GlobalAuditPage";
 import LoginPage from "./LoginPage";
+import DashboardPage from "./DashboardPage";
 import {
   iconStyle,
   menuItemStyle,
@@ -213,7 +214,7 @@ export default function App() {
           {view === "agents" && <AgentsPage />}
           {view === "sessions" && <SessionsPage />}
           {view === "audit" && <GlobalAuditPage />}
-          {view === "dashboard" && <h1 style={{ marginTop: 0 }}>Dashboard</h1>}
+          {view === "dashboard" && <DashboardPage />}
           {view === "settings" && <h1 style={{ marginTop: 0 }}>Settings</h1>}
         </main>
       </div>
