@@ -37,6 +37,9 @@ docker compose up --build
 Then open http://localhost:5173 and click **Sign in as Demo User**. The API is at
 http://localhost:8000/api/ and http://localhost:8000/api/health/.
 
+Already have something on port 5432? `DB_PORT=5433 docker compose up --build`
+(PowerShell: `$env:DB_PORT=5433; docker compose up --build`).
+
 Run the tests:
 
 ```bash
