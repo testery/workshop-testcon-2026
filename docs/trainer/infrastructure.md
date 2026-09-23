@@ -15,7 +15,7 @@ tagged `Project=workshop-testcon-2026`.
 | ACM certificate | `testcon.testery.academy` + `*.testcon.testery.academy` | DNS validated in Route53 zone `testery.academy`. |
 | Route53 | `testcon.testery.academy` A alias, `*.testcon.testery.academy` A alias | Both point at the ALB. |
 | ECR | `workshop-testcon-2026/api`, `workshop-testcon-2026/web` | Untagged images expire after 3 days. |
-| IAM | role `workshop-testcon-2026-github-actions` | Trusts GitHub OIDC for `repo:testery/workshop-testcon-2026:*`. ECR push on the two repos + `eks:DescribeCluster`. Mapped to cluster admin via an EKS access entry. |
+| IAM | role `workshop-testcon-2026-github-actions` | Trusts GitHub OIDC for this repo. ECR push on the two repos + `eks:DescribeCluster`. Mapped to cluster admin via an EKS access entry. The `testery` org uses GitHub's immutable OIDC subjects, so the trust policy allows both `repo:testery/workshop-testcon-2026:*` and `repo:testery@36372680/workshop-testcon-2026@1383776990:*`. |
 | IAM | OIDC provider `token.actions.githubusercontent.com` | New in this account; other repos can reuse it. |
 | IAM | policy `workshop-testcon-2026-alb-controller` | Standard controller policy. |
 
