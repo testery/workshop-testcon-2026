@@ -3,7 +3,7 @@
 #
 # 1. init container: Flyway applies db/migrations to the app schema (idempotent: it keeps a
 #    flyway_schema_history table, so a redeploy only applies what is new).
-# 2. container: Django migrates the framework tables it owns (sessions, admin, auth).
+# 2. container: Django migrates the framework tables it owns (sessions, admin, auth), then seeds demo data.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -36,7 +36,7 @@ spec:
           image: ${API_IMAGE}
           command: ["sh", "-c"]
           args:
-            - python manage.py migrate --noinput
+            - python manage.py migrate --noinput && python manage.py seed_demo_data
           envFrom:
             - configMapRef: { name: app-config }
             - secretRef: { name: app-secrets }
