@@ -154,6 +154,7 @@ def test_customer_create_flattens_nested_profile(api_client):
         "newFirstName": "Ada",
         "newLastName": "Lovelace",
         "newEmail": "ada@example.com",
+        "newNotes": "",
         "newProfilePhone": "555-0100",
         "newProfileAddress": "1 Analytical Way",
     }
@@ -200,6 +201,7 @@ def test_customer_delete_flattens_nested_profile(api_client):
         "oldFirstName": "Ada",
         "oldLastName": "Lovelace",
         "oldEmail": "ada@example.com",
+        "oldNotes": "",
         "oldProfilePhone": "555-0100",
         "oldProfileAddress": "1 Analytical Way",
     }

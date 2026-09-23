@@ -14,9 +14,9 @@ EMPLOYEES = [
 ]
 
 CUSTOMERS = [
-    ("Tomas", "Petrauskas", "tomas@example.com", "+370 600 00001", "Gedimino pr. 1, Vilnius"),
-    ("Ieva", "Kazlauskiene", "ieva@example.com", "+370 600 00002", "Laisves al. 10, Kaunas"),
-    ("Jonas", "Jankauskas", "jonas@example.com", "", "Taikos pr. 5, Klaipeda"),
+    ("Tomas", "Petrauskas", "tomas@example.com", "+370 600 00001", "Gedimino pr. 1, Vilnius", "Prefers email"),
+    ("Ieva", "Kazlauskiene", "ieva@example.com", "+370 600 00002", "Laisves al. 10, Kaunas", "Invoice monthly"),
+    ("Jonas", "Jankauskas", "jonas@example.com", "", "Taikos pr. 5, Klaipeda", ""),
 ]
 
 PRODUCTS = [
@@ -49,9 +49,9 @@ class Command(BaseCommand):
                 emp.supervisor = by_name[supervisor]
                 emp.save(update_fields=["supervisor"])
 
-        for first, last, email, phone, address in CUSTOMERS:
+        for first, last, email, phone, address, notes in CUSTOMERS:
             customer, _ = Customer.objects.update_or_create(
-                email=email, defaults={"first_name": first, "last_name": last}
+                email=email, defaults={"first_name": first, "last_name": last, "notes": notes}
             )
             CustomerProfile.objects.update_or_create(
                 customer=customer, defaults={"phone": phone, "address": address}
