@@ -68,6 +68,28 @@ When(
   },
 );
 
+When(
+  "I add a customer with first name {string} last name {string} email {string} and notes {string}",
+  async ({ page, testId }, first: string, last: string, email: string, notes: string) => {
+    await page.getByPlaceholder("First name").fill(first);
+    await page.getByPlaceholder("Last name").fill(suffixed(last, testId));
+    await page.getByPlaceholder("Email").fill(emailWithSuffix(email, testId));
+    await page.getByPlaceholder("Notes").fill(notes);
+    await page.locator('form button[type="submit"]').click();
+    await page.getByPlaceholder("Filter customers").fill(suffixed(last, testId));
+    await expect(customerRow(page, first, suffixed(last, testId))).toBeVisible();
+  },
+);
+
+Then(
+  "the customer {string} {string} should show notes {string}",
+  async ({ page, testId }, first: string, last: string, notes: string) => {
+    await expect(
+      customerRow(page, first, suffixed(last, testId)).getByTestId("customer-notes"),
+    ).toHaveText(notes);
+  },
+);
+
 Given(
   "a customer exists with first name {string} last name {string} email {string}",
   async ({ page, testId }, first: string, last: string, email: string) => {

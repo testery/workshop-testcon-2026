@@ -116,3 +116,24 @@ def test_filter_orders_by_customer(api_client):
     body = api_client.get(f"/api/orders/?customer={c1.id}").json()
     assert body["count"] == 1
     assert body["results"][0]["customer"] == c1.id
+
+
+@pytest.mark.django_db
+def test_customer_notes_round_trip(api_client):
+    created = api_client.post(
+        "/api/customers/",
+        {"first_name": "Nora", "last_name": "Notes", "email": "nora@example.com", "notes": "Prefers email"},
+        format="json",
+    )
+    assert created.status_code == 201, created.content
+    assert created.json()["notes"] == "Prefers email"
+
+    updated = api_client.patch(
+        f"/api/customers/{created.json()['id']}/", {"notes": "Call after 3pm"}, format="json"
+    )
+    assert updated.status_code == 200, updated.content
+    assert updated.json()["notes"] == "Call after 3pm"
+
+    listed = api_client.get("/api/customers/?search=Notes")
+    assert listed.status_code == 200
+    assert listed.json()["results"][0]["notes"] == "Call after 3pm"
