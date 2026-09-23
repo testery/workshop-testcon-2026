@@ -6,6 +6,29 @@ on:
     branches: [main]
 
 jobs:
+  migrations:
+    name: Database migrations (Flyway)
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: example_webapp
+          POSTGRES_USER: example_webapp
+          POSTGRES_PASSWORD: example_webapp
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U example_webapp"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply every migration to an empty database, then prove a second run is a no-op
+        run: |
+          run_flyway() { docker run --rm --network host -v "$PWD/db/migrations:/flyway/sql" flyway/flyway:11-alpine             -url=jdbc:postgresql://localhost:5432/example_webapp -user=example_webapp -password=example_webapp "$@"; }
+          run_flyway migrate
+          run_flyway validate
+          run_flyway info
+
   api-unit-tests:
     name: API unit tests (pytest)
     runs-on: ubuntu-24.04

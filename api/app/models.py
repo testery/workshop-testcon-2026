@@ -2,6 +2,10 @@ import secrets
 
 from django.db import models
 
+# The application schema is owned by Flyway (db/migrations). These models are `managed = False`:
+# Django reads and writes the tables but never creates or alters them, so a schema change is a
+# new SQL migration plus the matching model edit, never `makemigrations`.
+
 
 def _make_action_public_id() -> str:
     return f"act_{secrets.token_hex(6)}"
@@ -12,6 +16,7 @@ class Item(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        managed = False
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
@@ -32,6 +37,7 @@ class Employee(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        managed = False
         ordering = ["last_name", "first_name"]
 
     def __str__(self) -> str:
@@ -45,6 +51,7 @@ class Customer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        managed = False
         ordering = ["last_name", "first_name"]
 
     def __str__(self) -> str:
@@ -58,6 +65,9 @@ class CustomerProfile(models.Model):
     phone = models.CharField(max_length=40, blank=True)
     address = models.CharField(max_length=255, blank=True)
 
+    class Meta:
+        managed = False
+
     def __str__(self) -> str:
         return f"Profile({self.customer})"
 
@@ -68,6 +78,7 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        managed = False
         ordering = ["name"]
 
     def __str__(self) -> str:
@@ -82,6 +93,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        managed = False
         ordering = ["-created_at", "-id"]
 
     def __str__(self) -> str:
@@ -103,6 +115,7 @@ class OrderItem(models.Model):
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
+        managed = False
         unique_together = [("order", "product")]
 
     def __str__(self) -> str:
@@ -128,6 +141,7 @@ class Action(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        managed = False
         ordering = ["-created_at", "-id"]
         indexes = [models.Index(fields=["entity_type", "entity_id"])]
 
@@ -147,6 +161,7 @@ class AuditEvent(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        managed = False
         ordering = ["timestamp", "id"]
 
     def save(self, *args, **kwargs):

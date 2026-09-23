@@ -18,10 +18,11 @@ Module 7 yourself rather than watch.
 ## The app
 
 A small Django + React app with employees, customers, products and orders. Postgres behind
-it, Playwright + playwright-bdd on top of it.
+it, Flyway owning the schema, Playwright + playwright-bdd on top of it.
 
 ```
-api/    Django 5 + DRF (Python 3.12)
+api/    Django 5 + DRF (Python 3.12); the models are unmanaged, the schema lives in db/
+db/     Flyway SQL migrations (V1__..., V2__...) and the image that ships them
 web/    React 18 + Vite + TypeScript, served by nginx in containers
 k8s/    Kubernetes manifests for a preview environment (Module 3)
 .github/workflows/  CI and the preview pipeline

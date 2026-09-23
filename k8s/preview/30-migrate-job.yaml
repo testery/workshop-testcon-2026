@@ -1,5 +1,9 @@
 # Runs once per deploy. The name includes the commit so each deploy gets a fresh Job
 # (Job templates are immutable). Retries cover the window while Postgres is still starting.
+#
+# 1. init container: Flyway applies db/migrations to the app schema (idempotent: it keeps a
+#    flyway_schema_history table, so a redeploy only applies what is new).
+# 2. container: Django migrates the framework tables it owns (sessions, admin, auth).
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -11,8 +15,24 @@ spec:
   template:
     spec:
       restartPolicy: OnFailure
+      initContainers:
+        - name: flyway
+          image: ${MIGRATIONS_IMAGE}
+          args: ["migrate"]
+          env:
+            - name: FLYWAY_URL
+              value: jdbc:postgresql://db:5432/example_webapp
+            - name: FLYWAY_USER
+              value: example_webapp
+            - name: FLYWAY_PASSWORD
+              valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_PASSWORD } }
+            - name: FLYWAY_CONNECT_RETRIES
+              value: "60"
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: 500m, memory: 512Mi }
       containers:
-        - name: migrate
+        - name: django
           image: ${API_IMAGE}
           command: ["sh", "-c"]
           args:

@@ -14,7 +14,7 @@ tagged `Project=workshop-testcon-2026`.
 | ALB | ingress group `workshop` | Host-based routing, ACM cert attached, HTTP redirects to HTTPS. |
 | ACM certificate | `testcon.testery.academy` + `*.testcon.testery.academy` | DNS validated in Route53 zone `testery.academy`. |
 | Route53 | `testcon.testery.academy` A alias, `*.testcon.testery.academy` A alias | Both point at the ALB. |
-| ECR | `workshop-testcon-2026/api`, `workshop-testcon-2026/web` | Untagged images expire after 3 days. |
+| ECR | `workshop-testcon-2026/api`, `workshop-testcon-2026/web`, `workshop-testcon-2026/migrations` | Untagged images expire after 3 days. |
 | IAM | role `workshop-testcon-2026-github-actions` | Trusts GitHub OIDC for this repo. ECR push on the two repos + `eks:DescribeCluster`. Mapped to cluster admin via an EKS access entry. The `testery` org uses GitHub's immutable OIDC subjects, so the trust policy allows both `repo:testery/workshop-testcon-2026:*` and `repo:testery@36372680/workshop-testcon-2026@1383776990:*`. |
 | IAM | OIDC provider `token.actions.githubusercontent.com` | New in this account; other repos can reuse it. |
 | IAM | policy `workshop-testcon-2026-alb-controller` | Standard controller policy. |
@@ -74,6 +74,7 @@ eksctl delete cluster --name workshop-testcon-2026 --region us-east-1
 # 3. leftovers
 aws ecr delete-repository --repository-name workshop-testcon-2026/api --force
 aws ecr delete-repository --repository-name workshop-testcon-2026/web --force
+aws ecr delete-repository --repository-name workshop-testcon-2026/migrations --force
 aws iam delete-role-policy --role-name workshop-testcon-2026-github-actions --policy-name workshop-ecr-eks
 aws iam delete-role --role-name workshop-testcon-2026-github-actions
 aws iam delete-policy --policy-arn arn:aws:iam::498550306017:policy/workshop-testcon-2026-alb-controller

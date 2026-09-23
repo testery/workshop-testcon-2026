@@ -16,9 +16,22 @@ services:
       timeout: 5s
       retries: 10
 
+  flyway:
+    build: ./db
+    command: migrate
+    environment:
+      FLYWAY_URL: jdbc:postgresql://db:5432/example_webapp
+      FLYWAY_USER: example_webapp
+      FLYWAY_PASSWORD: example_webapp
+      FLYWAY_CONNECT_RETRIES: "30"
+    depends_on:
+      db:
+        condition: service_healthy
+
   api:
     build: ./api
     restart: unless-stopped
+    # Flyway has already migrated the app schema; Django migrates only its own framework tables.
     command: sh -c "python manage.py migrate --noinput && python manage.py seed_demo_data && gunicorn config.wsgi --bind 0.0.0.0:8000 --workers 2"
     environment:
       DATABASE_URL: postgres://example_webapp:example_webapp@db:5432/example_webapp
@@ -29,9 +42,14 @@ services:
       DEMO_LOGIN_ENABLED: "1"
     ports:
       - "8000:8000"
+    volumes:
+      # lets `docker compose exec api pytest` apply the same SQL to the test database
+      - ./db/migrations:/db/migrations:ro
     depends_on:
       db:
         condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
 
   web:
     build: ./web

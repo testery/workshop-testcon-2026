@@ -29,6 +29,7 @@ jobs:
       host: ${{ steps.names.outputs.host }}
       api_image: ${{ steps.names.outputs.api_image }}
       web_image: ${{ steps.names.outputs.web_image }}
+      migrations_image: ${{ steps.names.outputs.migrations_image }}
       sha_short: ${{ steps.names.outputs.sha_short }}
     steps:
       - uses: actions/checkout@v4
@@ -46,6 +47,7 @@ jobs:
           echo "host=${SAFE}.${PREVIEW_DOMAIN}" >> "$GITHUB_OUTPUT"
           echo "api_image=${ECR_REGISTRY}/workshop-testcon-2026/api:${SHA_SHORT}" >> "$GITHUB_OUTPUT"
           echo "web_image=${ECR_REGISTRY}/workshop-testcon-2026/web:${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "migrations_image=${ECR_REGISTRY}/workshop-testcon-2026/migrations:${SHA_SHORT}" >> "$GITHUB_OUTPUT"
           echo "sha_short=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
           echo "Preview will be https://${SAFE}.${PREVIEW_DOMAIN} in namespace pr-${{ github.event.pull_request.number }}"
 
@@ -77,6 +79,13 @@ jobs:
           tags: ${{ steps.names.outputs.web_image }}
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
+
+      - name: Build and push the migrations image (Flyway + db/migrations)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./db
+          push: true
+          tags: ${{ steps.names.outputs.migrations_image }}
 
   deploy:
     name: Deploy preview environment

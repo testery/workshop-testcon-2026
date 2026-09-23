@@ -10,7 +10,7 @@ The manifests in `k8s/preview/` are already written; read them first (10 minutes
 | `00-namespace.yaml` | One namespace per PR, labelled so the sweeper can find it |
 | `10-config.yaml` | ConfigMap + Secret with the per-environment settings |
 | `20-postgres.yaml` | A throwaway Postgres (emptyDir) and its Service |
-| `30-migrate-job.yaml` | A Job that runs `migrate` on every deploy |
+| `30-migrate-job.yaml` | A Job per deploy: Flyway (init container) migrates the app schema, then Django migrates its framework tables |
 | `40-api.yaml`, `50-web.yaml` | The two app Deployments and Services |
 | `60-ingress.yaml` | Host-based routing on a shared AWS load balancer |
 
@@ -45,6 +45,7 @@ one thing the pipeline has to be able to do.
           HOST: ${{ needs.build.outputs.host }}
           API_IMAGE: ${{ needs.build.outputs.api_image }}
           WEB_IMAGE: ${{ needs.build.outputs.web_image }}
+          MIGRATIONS_IMAGE: ${{ needs.build.outputs.migrations_image }}
           GIT_SHA_SHORT: ${{ needs.build.outputs.sha_short }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           BRANCH: ${{ github.head_ref }}

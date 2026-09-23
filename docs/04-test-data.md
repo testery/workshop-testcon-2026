@@ -4,12 +4,18 @@
 
 ## Where we are
 
-Your preview runs `migrate` on every deploy, so the schema is right. The tables are empty.
+Your preview runs the migrations on every deploy: Flyway applies `db/migrations/V*.sql` in
+order (and records what it applied in `flyway_schema_history`, so a redeploy only applies
+what is new), then Django creates the framework tables it owns. So the schema is right. The
+tables are empty.
 Sign in and look at Employees: nothing. The end-to-end suite creates the data it needs, but a
 human reviewer wants to see a populated app, and some tests need a baseline.
 
 ## Steps
 
+0. Look at `k8s/preview/30-migrate-job.yaml` and `db/migrations/V1__initial_schema.sql`.
+   Schema as code: a new column is a new `V2__...sql` file next to the code that needs it,
+   applied automatically on the next deploy of that branch and nowhere else.
 1. Look at `api/app/management/commands/seed_demo_data.py`. It creates a small fixed data set
    with `update_or_create`, keyed on natural identifiers (employee name, customer email,
    product name). That is what makes it idempotent: run it ten times, you get the same rows.
@@ -18,7 +24,8 @@ human reviewer wants to see a populated app, and some tests need a baseline.
    docker compose exec api python manage.py seed_demo_data
    docker compose exec api python manage.py seed_demo_data   # again: same counts
    ```
-3. Add it to the deploy. In `k8s/preview/30-migrate-job.yaml` change the command:
+3. Add it to the deploy. In `k8s/preview/30-migrate-job.yaml`, the `django` container runs
+   after the Flyway init container; change its command:
    ```yaml
           args:
             - python manage.py migrate --noinput && python manage.py seed_demo_data
@@ -42,7 +49,8 @@ Discuss: should seed data be authoritative, or should the seed only fill gaps
   deploy recreates it. For a preview, that is a feature. The migration + seed path is the
   only source of truth.
 - Seed data is code, versioned with the schema on the same branch. A branch that adds a
-  column can add its own seed values in the same PR.
+  column adds `V<n>__...sql` and its seed values in the same PR, and its preview is the only
+  place either one exists until merge.
 - The e2e tests still create their own records with a unique suffix (`testId` in
   `web/tests/steps/fixtures.ts`). Seed data is for humans and for read-only checks; tests
   should not depend on a specific seeded row existing.

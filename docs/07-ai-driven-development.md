@@ -20,12 +20,13 @@ Customers page, shown in the table, covered by an end-to-end scenario.
    ```
 2. Give it the task. Paste this:
    ```
-   Add a "notes" text field to Customer. It is optional. Show it in the Customers table and
-   make it editable in the add/edit form. Add a BDD scenario in web/tests/features/commerce.feature
-   that adds a customer with notes and checks the notes appear in the table. Follow CLAUDE.md,
-   run pytest and npm run test:e2e locally, then commit on this branch and push.
+   Add a "notes" text field to Customer. It is optional. The schema change is a new Flyway
+   migration in db/migrations. Show it in the Customers table and make it editable in the
+   add/edit form. Add a BDD scenario in web/tests/features/commerce.feature that adds a
+   customer with notes and checks the notes appear in the table. Follow CLAUDE.md, run
+   pytest and npm run test:e2e locally, then commit on this branch and push.
    ```
-3. Watch what it does: model + migration, serializer, API client, page, feature file, steps,
+3. Watch what it does: `V2__customer_notes.sql`, model, serializer, API client, page, feature file, steps,
    runs the tests locally, commits, pushes. Answer its questions if it asks; say yes to running
    the tests.
 4. The push triggers the pipeline. Open the PR: images build, the preview redeploys with the

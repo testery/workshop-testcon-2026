@@ -35,8 +35,9 @@ and the cloud; you will use the preview URL instead of localhost.
 ## What to notice
 
 - `api/` and `web/` each have a Dockerfile. The pipeline builds exactly these images.
-- `docker-compose.yml` runs migrations and seed data before starting the API. Keep that in
-  mind for Module 4: a Kubernetes deployment has to do the same thing somewhere.
+- `docker-compose.yml` runs Flyway (`db/migrations`), then Django's own framework
+  migrations and the seed data, before starting the API. Keep that in mind for Module 4: a
+  Kubernetes deployment has to do the same thing somewhere.
 - `web/tests/features/` holds the end-to-end suite. It talks to the app the way a user does.
 
 ## Checkpoint

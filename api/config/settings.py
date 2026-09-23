@@ -69,6 +69,10 @@ DATABASES = {
 DATABASES["default"].setdefault("OPTIONS", {})
 DATABASES["default"]["OPTIONS"]["connect_timeout"] = 2
 
+# Flyway owns the application schema (see db/migrations). Django's migrate only handles the
+# framework apps (auth, sessions, admin, contenttypes).
+MIGRATION_MODULES = {"app": None}
+
 AUTH_PASSWORD_VALIDATORS = []
 
 LANGUAGE_CODE = "en-us"
