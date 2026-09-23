@@ -250,7 +250,7 @@ When(
   async ({ page, testId }, customerName: string) => {
     const [first, last] = customerName.split(" ");
     const fullName = `${first} ${suffixed(last, testId)}`;
-    await orderRow(page, fullName).first().getByRole("button", { name: "View", exact: true }).click();
+    await orderRow(page, fullName).first().getByRole("button", { name: /View$/ }).click();
     await expect(page.getByRole("heading", { name: /^Order #/ })).toBeVisible();
   },
 );
