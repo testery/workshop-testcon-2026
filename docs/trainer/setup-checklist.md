@@ -22,7 +22,9 @@ Items marked **(Chris)** need an account only Chris has.
       `chris.harbert+testcon2026@testery.io` (a fresh account, not the Testery internal one,
       so attendees only see workshop runs). Name it **TestCon 2026 Workshop**.
 - [ ] **(Chris)** In it, create project key `workshop-testcon-2026`, framework Playwright,
-      config file `playwright.config.ts`. Or POST the JSON in `infrastructure.md`.
+      config file `playwright.config.ts`, and **do not connect a Git repository** (the
+      pipeline uploads the tests per commit; a connected repo makes Testery clone from Git
+      instead and end in "No tests run"). Or POST the JSON in `infrastructure.md`.
 - [ ] **(Chris)** Generate an API token there and put it in the GitHub secret `TESTERY_TOKEN`.
 - [ ] **(Chris)** Invite attendees to the workspace as registrations arrive.
 - [ ] Re-run a PR end to end after the token swap to confirm runs land in the new workspace.

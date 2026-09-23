@@ -46,13 +46,18 @@ them after 24h.
 
 ## Testery project JSON
 
-To create the project in the workshop workspace via the API:
+To create the project in the workshop workspace via the API. Keep the Git fields **blank**:
+the pipeline uploads each commit's tests as a build artifact, and Testery only uses uploaded
+artifacts when the project has no connected repository (a connected repo makes it clone
+from Git instead, which fails for this private repo and ends in "No tests run"). The API
+requires the three Git fields to be present, so send empty strings. In the web UI, simply
+do not pick a repository.
 
 ```bash
 curl -X POST https://api.testery.io/api/projects -H "Authorization: Bearer $TESTERY_TOKEN" \
   -H "Content-Type: application/json" -d '{"key":"workshop-testcon-2026","name":"Workshop TestCon 2026",
-  "gitProvider":"GitHub","gitOwner":"testery","gitRepo":"workshop-testcon-2026","defaultBranch":"main",
-  "configFile":"playwright.config.ts","runner":"playwright","testingFramework":"Playwright",
+  "description":"","gitProvider":"","gitOwner":"","gitRepo":"",
+  "configFile":"playwright.config.ts","testingFramework":"Playwright","cancelOlderTestRunsIfEquivalent":false,
   "defaultMaxRunners":4,"testRunTimeoutMinutes":60,"testTimeoutSeconds":300,"hasTests":true,
   "defaultToParallelizeByFile":true,"recordVideo":true,"testArtifacts":[],"testPackages":[],"testTags":[]}'
 ```
