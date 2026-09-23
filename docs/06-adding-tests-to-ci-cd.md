@@ -42,11 +42,19 @@ grid, in parallel, and reports the result on the PR as a check.
                --variable "BASE_URL=https://$HOST"
    ```
 3. Upload **this commit's** tests and run them. The tests come from the same commit as the
-   app, always:
+   app, always. playwright-bdd generates the runnable specs from the `.feature` files, so
+   generate them first and ship them in the bundle:
    ```yaml
-         - name: Upload this commit's tests
+         - uses: actions/setup-node@v4
+           with:
+             node-version: "20"
+             cache: npm
+             cache-dependency-path: web/package-lock.json
+
+         - name: Generate the specs and upload this commit's tests
            run: |
-             (cd web && zip -qr ../tests.zip . -x 'node_modules/*' 'test-results/*' 'playwright-report/*' '.features-gen/*' 'dist/*' 'tests/.auth/*')
+             (cd web && npm ci && npx bddgen)
+             (cd web && zip -qr ../tests.zip . -x 'node_modules/*' 'test-results/*' 'playwright-report/*' 'dist/*' 'tests/.auth/*')
              testery upload-build-artifacts --token "$TESTERY_TOKEN" --project-key "$TESTERY_PROJECT" \
                --build-id "$BUILD_ID" --branch "${{ github.head_ref }}" --path tests.zip
 
