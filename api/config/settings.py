@@ -8,13 +8,8 @@ env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, ["*"]),
     CORS_ALLOWED_ORIGINS=(list, ["http://localhost:5173"]),
-    AUTH0_DOMAIN=(str, ""),
-    AUTH0_CLIENT_ID=(str, ""),
-    AUTH0_CLIENT_SECRET=(str, ""),
-    AUTH0_CALLBACK_URL=(str, "http://localhost:8000/api/auth/callback"),
-    POST_LOGOUT_REDIRECT=(str, "http://localhost:5173/"),
-    AGENT_RUNNER_BACKEND=(str, "app.agent_runner.DockerAgentRunner"),
-    ANTHROPIC_API_KEY=(str, ""),
+    CSRF_TRUSTED_ORIGINS=(list, []),
+    DEMO_LOGIN_ENABLED=(bool, True),
 )
 environ.Env.read_env(BASE_DIR.parent / ".env")
 
@@ -87,13 +82,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
 CORS_ALLOW_CREDENTIALS = True
 
-AUTH0_DOMAIN = env("AUTH0_DOMAIN")
-AUTH0_CLIENT_ID = env("AUTH0_CLIENT_ID")
-AUTH0_CLIENT_SECRET = env("AUTH0_CLIENT_SECRET")
-AUTH0_CALLBACK_URL = env("AUTH0_CALLBACK_URL")
-POST_LOGOUT_REDIRECT = env("POST_LOGOUT_REDIRECT")
-AGENT_RUNNER_BACKEND = env("AGENT_RUNNER_BACKEND")
-ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY")
+CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
+DEMO_LOGIN_ENABLED = env("DEMO_LOGIN_ENABLED")
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_HTTPONLY = True
@@ -147,7 +138,7 @@ LOGGING = {
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "config.auth.Auth0SessionAuthentication",
+        "config.auth.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",

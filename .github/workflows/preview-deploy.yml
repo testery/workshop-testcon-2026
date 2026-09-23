@@ -1,0 +1,95 @@
+name: Preview Environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# A new push to the same PR cancels the previous deploy instead of racing it.
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write      # lets the job assume the AWS role via OIDC (no long-lived keys)
+  pull-requests: write # lets the job comment the preview URL on the PR
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
+  EKS_CLUSTER: ${{ vars.EKS_CLUSTER }}
+  PREVIEW_DOMAIN: ${{ vars.PREVIEW_DOMAIN }}
+
+jobs:
+  build:
+    name: Build and push images
+    runs-on: ubuntu-24.04
+    outputs:
+      namespace: ${{ steps.names.outputs.namespace }}
+      host: ${{ steps.names.outputs.host }}
+      api_image: ${{ steps.names.outputs.api_image }}
+      web_image: ${{ steps.names.outputs.web_image }}
+      sha_short: ${{ steps.names.outputs.sha_short }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Work out the environment name
+        id: names
+        env:
+          BRANCH: ${{ github.head_ref }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Branch name -> a valid DNS label: lowercase, [a-z0-9-], max 40 chars.
+          SAFE=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//' | cut -c1-40 | sed -E 's/-+$//')
+          SHA_SHORT=${SHA::7}
+          echo "namespace=pr-${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          echo "host=${SAFE}.${PREVIEW_DOMAIN}" >> "$GITHUB_OUTPUT"
+          echo "api_image=${ECR_REGISTRY}/workshop-testcon-2026/api:${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "web_image=${ECR_REGISTRY}/workshop-testcon-2026/web:${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "sha_short=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "Preview will be https://${SAFE}.${PREVIEW_DOMAIN} in namespace pr-${{ github.event.pull_request.number }}"
+
+      - name: Authenticate to AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build and push the API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          push: true
+          tags: ${{ steps.names.outputs.api_image }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build and push the web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          push: true
+          tags: ${{ steps.names.outputs.web_image }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+  deploy:
+    name: Deploy preview environment
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # ------------------------------------------------------------------
+      # LAB 3a: replace this placeholder with the real deployment steps.
+      # See docs/03-deploying-ephemeral-environments.md
+      # ------------------------------------------------------------------
+      - name: Deploy (not implemented yet)
+        run: |
+          echo "Images are built: ${{ needs.build.outputs.api_image }}"
+          echo "Nothing is deployed yet. Complete Lab 3a to deploy to https://${{ needs.build.outputs.host }}"

@@ -1,15 +1,50 @@
-# Project Notes
+# Workshop app: notes for Claude Code
+
+This is the sample app for the TestCon 2026 workshop "Deploying and Testing Ephemeral
+Environments". Keep changes small and complete: model, API, UI, and a BDD scenario for
+every feature, in one branch, one pull request.
 
 ## Stack
-- Backend: Django + Django REST Framework. Single app at [api/app/](api/app/) containing all entities (`Item`, `Employee`, …). Router-registered ViewSets (full CRUD incl. PATCH) in [api/app/urls.py](api/app/urls.py). New entities go in this app — don't create per-entity Django apps.
-- Frontend: React + TypeScript + Vite in [web/](web/). Entry [web/src/main.tsx](web/src/main.tsx), app [web/src/App.tsx](web/src/App.tsx), API client [web/src/api.ts](web/src/api.ts).
-- API proxy: frontend calls `/api/items/`.
+- API: Django 5 + Django REST Framework, Python 3.12, Postgres. One Django app at `api/app/`
+  holds every entity (`Item`, `Employee`, `Customer`, `CustomerProfile`, `Product`, `Order`,
+  `OrderItem`, `Action`, `AuditEvent`). New entities and fields go in `api/app/models.py`
+  with a migration in `api/app/migrations/`. ViewSets in `api/app/views.py` are registered in
+  `api/app/urls.py`; all of them go through `AuditedViewSetMixin`, which records changes.
+- Web: React 18 + TypeScript + Vite in `web/`. One page component per entity
+  (`web/src/CustomersPage.tsx` etc.), one API client module per entity
+  (`web/src/commerceApi.ts`, `web/src/employeesApi.ts`, `web/src/api.ts`). Inline styles,
+  no CSS framework. Icons are Font Awesome 6 classes.
+- Auth: a demo session. `GET /api/auth/demo-login` signs the browser in. There is no
+  password and no user management; do not add any.
+- Tests: `pytest` in `api/` (needs Postgres, see `docker-compose.yml`), `vitest` for web unit
+  tests, Playwright + playwright-bdd for end-to-end tests in `web/tests/features/*.feature`
+  with steps in `web/tests/steps/*.steps.ts`.
 
-## UI Conventions
-- Layout uses CSS flexbox (no CSS framework). Top nav bar + left side menu + scrollable main area, all inline styles in [web/src/App.tsx](web/src/App.tsx).
-- Icons via Font Awesome 6 CDN (loaded in [web/index.html](web/index.html)), used as `<i className="fa-solid fa-..." />`.
-- Shared button style objects at the bottom of [web/src/App.tsx](web/src/App.tsx): `primaryBtnStyle` (blue), `secondaryBtnStyle` (gray), `dangerBtnStyle` (red), plus `menuItemStyle`, `sideLinkStyle`, `iconStyle`.
-- Auth is simulated in local state (`user` string, Sign In / Logout in header dropdown) — no real auth wired up yet.
+## Commands
+```bash
+docker compose up --build            # full stack on http://localhost:5173
+cd api && pytest                     # API unit tests
+cd web && npm test                   # web unit tests
+cd web && npm run test:e2e           # e2e against http://localhost:5173 (or $BASE_URL)
+python manage.py makemigrations      # run inside api/ with the venv or the api container
+python manage.py seed_demo_data      # idempotent demo data
+```
 
-## API Client Pattern
-- `listItems`, `createItem`, `updateItem` (PATCH), `deleteItem` in [web/src/api.ts](web/src/api.ts). Keep new endpoints in this file and throw on non-ok responses.
+## Definition of done for a feature
+1. Model change + migration (`python manage.py makemigrations app`), serializer updated.
+2. API client type and function updated in `web/src/*Api.ts`.
+3. UI: the page shows and edits the new data. Reuse the existing table/form pattern on the
+   page you are changing.
+4. A new scenario in the matching `.feature` file plus any missing step definitions. Follow the
+   existing steps: the `testId` fixture makes names unique so tests can run in parallel and
+   against a shared environment. Never hardcode a base URL or an id from seed data.
+5. `pytest`, `npm test` and `npm run test:e2e` pass locally.
+6. Commit on the current branch and push. The pull request deploys a preview environment and
+   runs the e2e suite on Testery; read the PR checks before calling it done.
+
+## Conventions
+- Serializers list fields explicitly. Add new fields to `fields` and, when read-only, to
+  `read_only_fields`.
+- Playwright locators: prefer `getByRole`, `getByLabel` and `getByTestId`. Add a `data-testid`
+  when there is no accessible name to hook on.
+- Keep pull requests to one feature. Do not refactor unrelated code.

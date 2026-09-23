@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workshop-home
+  namespace: default
+data:
+  default.conf: |
+    server {
+      listen 80;
+      server_name _;
+      location = /register { return 302 ${REGISTER_URL}; }
+      location = /healthz { return 200 "ok"; add_header Content-Type text/plain; }
+      location / { root /usr/share/nginx/html; index index.html; }
+    }
+  index.html: |
+    <!doctype html>
+    <html lang="en"><head><meta charset="utf-8"><title>TestCon 2026 Workshop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body{margin:0;background:#0a0c10;color:#fff;font-family:Segoe UI,Helvetica,Arial,sans-serif}
+      main{max-width:720px;margin:0 auto;padding:64px 24px}
+      h1{font-size:32px;margin:0 0 8px} .eyebrow{color:#2EE06A;letter-spacing:.12em;text-transform:uppercase;font-size:12px;font-weight:700}
+      p{color:#C6CFDA;line-height:1.5} a{color:#2EE06A}
+      .card{background:#161A21;border:1px solid #2A3340;border-radius:12px;padding:20px 24px;margin:16px 0}
+      .card h2{font-size:16px;margin:0 0 6px;color:#2EE06A}
+    </style></head>
+    <body><main>
+      <div class="eyebrow">TestCon Europe 2026 &middot; Vilnius &middot; 20 October</div>
+      <h1>Deploying and Testing Ephemeral Environments</h1>
+      <p>Workshop with Chris Harbert, Founder &amp; CEO of Testery.</p>
+      <div class="card"><h2>1. Register</h2><p>Fill in the short form so we can invite you to the GitHub repo and the Testery workspace: <a href="/register">testcon.testery.academy/register</a></p></div>
+      <div class="card"><h2>2. Repository</h2><p><a href="https://github.com/testery/workshop-testcon-2026">github.com/testery/workshop-testcon-2026</a> (private; you receive an invite after registering)</p></div>
+      <div class="card"><h2>3. Testery</h2><p><a href="https://app.testery.io">app.testery.io</a> (invite arrives by email)</p></div>
+      <div class="card"><h2>Your preview environments</h2><p>Every pull request you open gets its own URL: <code>https://&lt;branch&gt;.testcon.testery.academy</code></p></div>
+    </main></body></html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workshop-home
+  namespace: default
+  labels: { app: workshop-home }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: workshop-home }
+  template:
+    metadata:
+      labels: { app: workshop-home }
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{ containerPort: 80 }]
+          volumeMounts:
+            - { name: cfg, mountPath: /etc/nginx/conf.d/default.conf, subPath: default.conf }
+            - { name: cfg, mountPath: /usr/share/nginx/html/index.html, subPath: index.html }
+          readinessProbe:
+            httpGet: { path: /healthz, port: 80 }
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: 250m, memory: 512Mi }
+      volumes:
+        - name: cfg
+          configMap: { name: workshop-home }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workshop-home
+  namespace: default
+spec:
+  selector: { app: workshop-home }
+  ports: [{ port: 80, targetPort: 80 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workshop-home
+  namespace: default
+  annotations:
+    alb.ingress.kubernetes.io/group.name: workshop
+    alb.ingress.kubernetes.io/group.order: "1000"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: ${CERT_ARN}
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+spec:
+  ingressClassName: alb
+  rules:
+    - host: testcon.testery.academy
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: workshop-home
+                port: { number: 80 }

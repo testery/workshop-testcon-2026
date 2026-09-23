@@ -1,0 +1,53 @@
+name: Preview Environment Sweeper
+
+# Teardown will fail sometimes (a cancelled workflow, a deleted branch, an API blip).
+# This job runs from main every hour and removes previews whose PR is closed or that
+# are older than their TTL. It is the safety net behind preview-destroy.yml.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: read
+
+env:
+  AWS_REGION: us-east-1
+  EKS_CLUSTER: ${{ vars.EKS_CLUSTER }}
+
+jobs:
+  sweep:
+    name: Remove orphaned previews
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Authenticate to AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Point kubectl at the cluster
+        run: aws eks update-kubeconfig --name "$EKS_CLUSTER" --region "$AWS_REGION"
+
+      - name: Delete previews for closed PRs or past their TTL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TESTERY_TOKEN: ${{ secrets.TESTERY_TOKEN }}
+        run: |
+          pip install --quiet --upgrade testery >/dev/null 2>&1 || true
+          now=$(date +%s)
+          kubectl get ns -l workshop.testery.io/preview=true -o json \
+            | jq -r '.items[] | "\(.metadata.name) \(.metadata.labels["workshop.testery.io/pr"]) \(.metadata.creationTimestamp) \(.metadata.annotations["workshop.testery.io/ttl-hours"] // "24")"' \
+            | while read -r ns pr created ttl; do
+                state=$(gh api "repos/${{ github.repository }}/pulls/$pr" --jq .state 2>/dev/null || echo unknown)
+                age_h=$(( (now - $(date -d "$created" +%s)) / 3600 ))
+                if [ "$state" = "closed" ] || [ "$age_h" -ge "$ttl" ]; then
+                  echo "Deleting $ns (PR #$pr is $state, age ${age_h}h, ttl ${ttl}h)"
+                  kubectl delete ns "$ns" --ignore-not-found --timeout=300s
+                  [ -n "$TESTERY_TOKEN" ] && testery delete-environment --token "$TESTERY_TOKEN" --key "$ns" || true
+                else
+                  echo "Keeping $ns (PR #$pr is $state, age ${age_h}h)"
+                fi
+              done

@@ -16,4 +16,5 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn config.wsgi --bind 0.0.0.0:8000"]
+# Migrations and seed data are run by the deployment (docker compose or the Kubernetes Job), not at container start.
+CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--workers", "2"]

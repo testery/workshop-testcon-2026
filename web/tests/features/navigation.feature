@@ -7,7 +7,7 @@ Feature: App navigation
 
   Scenario: Authenticated user is shown in the header
     Given I am on the home page
-    Then the user menu button should show "Dev Test User"
+    Then the user menu button should show "Demo User"
 
   Scenario: Unauthenticated User Sees Login Page
     Given I am unauthenticated

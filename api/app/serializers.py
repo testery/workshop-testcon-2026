@@ -2,9 +2,7 @@ from rest_framework import serializers
 
 from .models import (
     Action,
-    Agent,
     AuditEvent,
-    ChatMessage,
     Customer,
     CustomerProfile,
     Employee,
@@ -12,7 +10,6 @@ from .models import (
     Order,
     OrderItem,
     Product,
-    Session,
 )
 
 
@@ -184,42 +181,3 @@ class OrderSerializer(serializers.ModelSerializer):
             for item in items_data:
                 OrderItem.objects.create(order=instance, **item)
         return instance
-
-
-class AgentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Agent
-        fields = ["id", "name", "description", "created_at"]
-        read_only_fields = ["id", "created_at"]
-
-
-class ChatMessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ChatMessage
-        fields = ["id", "role", "content", "created_at"]
-        read_only_fields = ["id", "role", "content", "created_at"]
-
-
-class SessionSerializer(serializers.ModelSerializer):
-    agent_name = serializers.CharField(source="agent.name", read_only=True)
-
-    class Meta:
-        model = Session
-        fields = [
-            "id",
-            "title",
-            "agent",
-            "agent_name",
-            "container_id",
-            "container_url",
-            "container_status",
-            "created_at",
-        ]
-        read_only_fields = [
-            "id",
-            "agent_name",
-            "container_id",
-            "container_url",
-            "container_status",
-            "created_at",
-        ]

@@ -1,14 +1,22 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     if (window.location.pathname !== "/login") {
       window.history.replaceState(null, "", "/login");
     }
   }, []);
 
-  const signIn = () => {
-    window.location.href = "/api/auth/login";
+  const signIn = async () => {
+    try {
+      const res = await fetch("/api/auth/demo-login", { credentials: "include" });
+      if (!res.ok) throw new Error(`Demo login failed: ${res.status}`);
+      window.location.href = "/";
+    } catch (e) {
+      setError(String(e));
+    }
   };
 
   return (
@@ -35,8 +43,9 @@ export default function LoginPage() {
       >
         <h1 style={{ marginTop: 0, marginBottom: "0.5rem" }}>Sign In</h1>
         <p style={{ color: "#6b7280", marginTop: 0 }}>
-          You need to sign in to continue.
+          This workshop app uses a built-in demo user.
         </p>
+        {error && <p style={{ color: "#b91c1c" }}>{error}</p>}
         <button
           onClick={signIn}
           style={{
@@ -51,7 +60,7 @@ export default function LoginPage() {
           }}
         >
           <i className="fa-solid fa-right-to-bracket" style={{ marginRight: 8 }} />
-          Sign In
+          Sign in as Demo User
         </button>
       </div>
     </div>

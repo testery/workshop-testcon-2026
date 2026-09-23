@@ -5,23 +5,19 @@ from django.db import transaction
 
 from app.models import (
     Action,
-    Agent,
     AuditEvent,
     Customer,
     Employee,
     Item,
     Order,
     Product,
-    Session,
 )
 from app.serializers import (
-    AgentSerializer,
     CustomerSerializer,
     EmployeeSerializer,
     ItemSerializer,
     OrderSerializer,
     ProductSerializer,
-    SessionSerializer,
 )
 from app.views import _flatten_scalar, _hash_request_body, _pascal
 
@@ -32,8 +28,6 @@ ENTITY_MAP = [
     ("customer", Customer, CustomerSerializer),
     ("product", Product, ProductSerializer),
     ("order", Order, OrderSerializer),
-    ("agent", Agent, AgentSerializer),
-    ("session", Session, SessionSerializer),
 ]
 
 

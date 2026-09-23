@@ -9,31 +9,24 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .agent_runner import get_runner
 from .models import (
     Action,
-    Agent,
     AuditEvent,
-    ChatMessage,
     Customer,
     Employee,
     Item,
     Order,
     Product,
-    Session,
 )
 from .serializers import (
     ActionCreateRequestSerializer,
     ActionCreateResponseSerializer,
     ActionDetailSerializer,
-    AgentSerializer,
-    ChatMessageSerializer,
     CustomerSerializer,
     EmployeeSerializer,
     ItemSerializer,
     OrderSerializer,
     ProductSerializer,
-    SessionSerializer,
 )
 
 
@@ -322,98 +315,3 @@ class OrderViewSet(AuditedViewSetMixin, viewsets.ModelViewSet):
         if customer:
             qs = qs.filter(customer_id=customer)
         return qs
-
-
-class AgentViewSet(AuditedViewSetMixin, viewsets.ModelViewSet):
-    audit_entity = "agent"
-    serializer_class = AgentSerializer
-
-    def get_queryset(self):
-        qs = Agent.objects.all().order_by("name", "id")
-        search = self.request.query_params.get("search")
-        if search:
-            qs = qs.filter(
-                Q(name__icontains=search) | Q(description__icontains=search)
-            )
-        return qs
-
-
-class SessionViewSet(AuditedViewSetMixin, viewsets.ModelViewSet):
-    audit_entity = "session"
-    serializer_class = SessionSerializer
-
-    def get_queryset(self):
-        qs = (
-            Session.objects.select_related("agent")
-            .order_by("-created_at", "-id")
-        )
-        agent = self.request.query_params.get("agent")
-        if agent:
-            qs = qs.filter(agent_id=agent)
-        return qs
-
-    def perform_create(self, serializer):
-        session = serializer.save()
-        runner = get_runner()
-        try:
-            handle = runner.start(
-                session_id=session.id,
-                agent_name=session.agent.name,
-                agent_description=session.agent.description,
-            )
-            session.container_id = handle.container_id
-            session.container_url = handle.url
-            session.container_status = Session.STATUS_RUNNING
-            session.save(update_fields=["container_id", "container_url", "container_status"])
-        except Exception:
-            logger.exception("Failed to spin up container for session %s", session.id)
-            session.container_status = Session.STATUS_FAILED
-            session.save(update_fields=["container_status"])
-
-    def perform_destroy(self, instance):
-        if instance.container_id:
-            try:
-                get_runner().stop(instance.container_id)
-            except Exception:
-                logger.exception("Failed to stop container %s", instance.container_id)
-        super().perform_destroy(instance)
-
-    @action(detail=True, methods=["get"])
-    def messages(self, request, pk=None):
-        session = self.get_object()
-        msgs = session.messages.all()
-        return Response(ChatMessageSerializer(msgs, many=True).data)
-
-    @action(detail=True, methods=["post"])
-    def chat(self, request, pk=None):
-        session = self.get_object()
-        message = (request.data.get("message") or "").strip()
-        if not message:
-            return Response(
-                {"detail": "message is required"}, status=status.HTTP_400_BAD_REQUEST
-            )
-        if session.container_status != Session.STATUS_RUNNING:
-            return Response(
-                {"detail": f"session container not running (status={session.container_status})"},
-                status=status.HTTP_409_CONFLICT,
-            )
-        ChatMessage.objects.create(
-            session=session, role=ChatMessage.ROLE_USER, content=message
-        )
-        try:
-            reply = get_runner().chat(
-                container_id=session.container_id,
-                url=session.container_url,
-                user_id=str(session.id),
-                message=message,
-            )
-        except Exception as exc:
-            logger.exception("chat failed for session %s", session.id)
-            return Response(
-                {"detail": f"agent error: {exc}"},
-                status=status.HTTP_502_BAD_GATEWAY,
-            )
-        assistant_msg = ChatMessage.objects.create(
-            session=session, role=ChatMessage.ROLE_ASSISTANT, content=reply
-        )
-        return Response(ChatMessageSerializer(assistant_msg).data)

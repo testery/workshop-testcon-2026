@@ -1,17 +1,17 @@
 services:
   db:
-    image: postgres:16
+    image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-example_webapp}
-      POSTGRES_USER: ${POSTGRES_USER:-example_webapp}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-example_webapp}
+      POSTGRES_DB: example_webapp
+      POSTGRES_USER: example_webapp
+      POSTGRES_PASSWORD: example_webapp
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-example_webapp}"]
+      test: ["CMD-SHELL", "pg_isready -U example_webapp"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -19,19 +19,14 @@ services:
   api:
     build: ./api
     restart: unless-stopped
+    command: sh -c "python manage.py migrate --noinput && python manage.py seed_demo_data && gunicorn config.wsgi --bind 0.0.0.0:8000 --workers 2"
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgres://example_webapp:example_webapp@db:5432/example_webapp}
-      SECRET_KEY: ${SECRET_KEY:-insecure-dev-key-change-me}
-      DEBUG: ${DEBUG:-1}
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
-      AUTH0_DOMAIN: ${AUTH0_DOMAIN:-}
-      AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID:-}
-      AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET:-}
-      AUTH0_CALLBACK_URL: ${AUTH0_CALLBACK_URL:-http://localhost:8000/api/auth/callback}
-      POST_LOGOUT_REDIRECT: ${POST_LOGOUT_REDIRECT:-http://localhost:5173/}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      AGENT_RUNNER_BACKEND: ${AGENT_RUNNER_BACKEND:-}
+      DATABASE_URL: postgres://example_webapp:example_webapp@db:5432/example_webapp
+      SECRET_KEY: insecure-dev-key-change-me
+      DEBUG: "1"
+      ALLOWED_HOSTS: "*"
+      CORS_ALLOWED_ORIGINS: http://localhost:5173
+      DEMO_LOGIN_ENABLED: "1"
     ports:
       - "8000:8000"
     depends_on:

@@ -1,31 +1,14 @@
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-.venv/
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Django
-*.sqlite3
-staticfiles/
-logs/
-
-# Node
-node_modules/
-dist/
-playwright-report/
-test-results/
-web/.features-gen/
-web/tsconfig.tsbuildinfo
-web/tests/.auth/
-
-# Env
 .env
-.env.local
-
-# IDE
-.idea/
-.vscode/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+api/logs/
+web/node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
+web/.features-gen/
+web/tests/.auth/
+tests.zip
 .DS_Store

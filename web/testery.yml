@@ -1,0 +1,2 @@
+framework: playwright-bdd
+testCommand: npm run test:e2e

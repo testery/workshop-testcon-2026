@@ -109,46 +109,6 @@ class OrderItem(models.Model):
         return f"{self.quantity}x {self.product}"
 
 
-class Agent(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["name", "id"]
-
-    def __str__(self) -> str:
-        return self.name
-
-
-class Session(models.Model):
-    STATUS_PENDING = "pending"
-    STATUS_RUNNING = "running"
-    STATUS_FAILED = "failed"
-    STATUS_STOPPED = "stopped"
-    STATUS_CHOICES = [
-        (STATUS_PENDING, "Pending"),
-        (STATUS_RUNNING, "Running"),
-        (STATUS_FAILED, "Failed"),
-        (STATUS_STOPPED, "Stopped"),
-    ]
-
-    title = models.CharField(max_length=200)
-    agent = models.ForeignKey(Agent, on_delete=models.PROTECT, related_name="sessions")
-    container_id = models.CharField(max_length=128, blank=True)
-    container_url = models.CharField(max_length=255, blank=True)
-    container_status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-created_at", "-id"]
-
-    def __str__(self) -> str:
-        return self.title
-
-
 class Action(models.Model):
     STATUS_ACCEPTED = "ACCEPTED"
     STATUS_CHOICES = [(STATUS_ACCEPTED, "Accepted")]
@@ -196,22 +156,3 @@ class AuditEvent(models.Model):
 
     def delete(self, *args, **kwargs):
         raise RuntimeError("AuditEvent is append-only")
-
-
-class ChatMessage(models.Model):
-    ROLE_USER = "user"
-    ROLE_ASSISTANT = "assistant"
-    ROLE_CHOICES = [(ROLE_USER, "User"), (ROLE_ASSISTANT, "Assistant")]
-
-    session = models.ForeignKey(
-        Session, on_delete=models.CASCADE, related_name="messages"
-    )
-    role = models.CharField(max_length=16, choices=ROLE_CHOICES)
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["created_at", "id"]
-
-    def __str__(self) -> str:
-        return f"{self.role}: {self.content[:40]}"

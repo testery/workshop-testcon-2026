@@ -1,0 +1,56 @@
+# A database per environment. Storage is an emptyDir: it lives exactly as long as the pod,
+# which is the point. Migrations and seed data recreate everything on every deploy (Module 4).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+  namespace: ${NAMESPACE}
+  labels: { app: db }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: db }
+  template:
+    metadata:
+      labels: { app: db }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: example_webapp
+            - name: POSTGRES_USER
+              value: example_webapp
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_PASSWORD } }
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "example_webapp"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  namespace: ${NAMESPACE}
+spec:
+  selector: { app: db }
+  ports:
+    - port: 5432
+      targetPort: 5432

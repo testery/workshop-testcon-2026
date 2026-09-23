@@ -1,8 +1,9 @@
 from django.contrib import admin
 
-from .models import Agent, Employee, Item, Session
+from .models import Customer, Employee, Item, Order, Product
 
 admin.site.register(Item)
 admin.site.register(Employee)
-admin.site.register(Agent)
-admin.site.register(Session)
+admin.site.register(Customer)
+admin.site.register(Product)
+admin.site.register(Order)

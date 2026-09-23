@@ -4,8 +4,6 @@ import EmployeesPage from "./EmployeesPage";
 import CustomersPage from "./CustomersPage";
 import ProductsPage from "./ProductsPage";
 import OrdersPage from "./OrdersPage";
-import AgentsPage from "./AgentsPage";
-import SessionsPage from "./SessionsPage";
 import GlobalAuditPage from "./GlobalAuditPage";
 import LoginPage from "./LoginPage";
 import DashboardPage from "./DashboardPage";
@@ -23,15 +21,13 @@ type View =
   | "customers"
   | "products"
   | "orders"
-  | "agents"
-  | "sessions"
   | "audit"
   | "settings";
 
 type AuthUser = { name?: string; email?: string; picture?: string };
 
 export default function App() {
-  const [view, setView] = useState<View>("items");
+  const [view, setView] = useState<View>("dashboard");
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -55,12 +51,6 @@ export default function App() {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  const signInAuth0 = () => {
-    window.location.href = "/api/auth/login";
-  };
-  const signInGoogle = () => {
-    window.location.href = "/api/auth/login?connection=google-oauth2";
-  };
   const signOut = () => {
     window.location.href = "/api/auth/logout";
   };
@@ -91,7 +81,7 @@ export default function App() {
           color: "white",
         }}
       >
-        <div style={{ fontWeight: "bold", fontSize: "1.1rem" }}>Sample Project</div>
+        <div style={{ fontWeight: "bold", fontSize: "1.1rem" }}>Example Webapp</div>
         <div ref={menuRef} style={{ position: "relative" }}>
           <button
             onClick={() => setMenuOpen((o) => !o)}
@@ -105,7 +95,7 @@ export default function App() {
             }}
           >
             <i className="fa-solid fa-user" style={{ marginRight: 6 }} />
-            {user ? user.name || user.email || "Signed in" : "Guest"}
+            {user.name || user.email || "Signed in"}
             <i className="fa-solid fa-caret-down" style={{ marginLeft: 6 }} />
           </button>
           {menuOpen && (
@@ -135,23 +125,10 @@ export default function App() {
                 Audit Log
               </button>
               <div style={{ borderTop: "1px solid #e5e7eb" }} />
-              {user ? (
-                <button onClick={signOut} style={menuItemStyle}>
-                  <i className="fa-solid fa-right-from-bracket" style={{ marginRight: 8 }} />
-                  Logout
-                </button>
-              ) : (
-                <>
-                  <button onClick={signInAuth0} style={menuItemStyle}>
-                    <i className="fa-solid fa-right-to-bracket" style={{ marginRight: 8 }} />
-                    Sign In
-                  </button>
-                  <button onClick={signInGoogle} style={menuItemStyle}>
-                    <i className="fa-brands fa-google" style={{ marginRight: 8 }} />
-                    Sign in with Google
-                  </button>
-                </>
-              )}
+              <button onClick={signOut} style={menuItemStyle}>
+                <i className="fa-solid fa-right-from-bracket" style={{ marginRight: 8 }} />
+                Logout
+              </button>
             </div>
           )}
         </div>
@@ -192,14 +169,6 @@ export default function App() {
             <i className="fa-solid fa-receipt" style={iconStyle} />
             Orders
           </button>
-          <button onClick={() => setView("agents")} style={navBtn("agents")}>
-            <i className="fa-solid fa-robot" style={iconStyle} />
-            Agents
-          </button>
-          <button onClick={() => setView("sessions")} style={navBtn("sessions")}>
-            <i className="fa-solid fa-comments" style={iconStyle} />
-            Sessions
-          </button>
           <button onClick={() => setView("settings")} style={navBtn("settings")}>
             <i className="fa-solid fa-gear" style={iconStyle} />
             Settings
@@ -211,8 +180,6 @@ export default function App() {
           {view === "customers" && <CustomersPage />}
           {view === "products" && <ProductsPage />}
           {view === "orders" && <OrdersPage />}
-          {view === "agents" && <AgentsPage />}
-          {view === "sessions" && <SessionsPage />}
           {view === "audit" && <GlobalAuditPage />}
           {view === "dashboard" && <DashboardPage />}
           {view === "settings" && <h1 style={{ marginTop: 0 }}>Settings</h1>}

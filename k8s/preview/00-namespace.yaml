@@ -1,0 +1,13 @@
+# One namespace per pull request. Everything below is created inside it and the whole
+# namespace is deleted when the PR closes, which is what makes the environment ephemeral.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${NAMESPACE}
+  labels:
+    workshop.testery.io/preview: "true"
+    workshop.testery.io/pr: "${PR_NUMBER}"
+  annotations:
+    workshop.testery.io/branch: "${BRANCH}"
+    workshop.testery.io/host: "${HOST}"
+    workshop.testery.io/ttl-hours: "24"
