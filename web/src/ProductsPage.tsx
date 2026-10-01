@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   createProduct,
   deleteProduct,
@@ -30,15 +30,28 @@ export default function ProductsPage() {
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
+  // Handlers that await a save call refresh() later; read page/search from refs so they
+  // reload what is on screen now, not what was there when the save started.
+  const pageRef = useRef(page);
+  const searchRef = useRef(search);
+  pageRef.current = page;
+  searchRef.current = search;
+  // Only the latest list request may update the table; older responses are dropped.
+  const requestSeq = useRef(0);
+
   const refresh = (opts?: { page?: number; search?: string }) => {
-    const p = opts?.page ?? page;
-    const s = opts?.search ?? search;
+    const p = opts?.page ?? pageRef.current;
+    const s = opts?.search ?? searchRef.current;
+    const seq = ++requestSeq.current;
     listProducts({ page: p, search: s || undefined })
       .then((resp) => {
+        if (seq !== requestSeq.current) return;
         setProducts(resp.results);
         setCount(resp.count);
       })
-      .catch((e) => setError(String(e)));
+      .catch((e) => {
+        if (seq === requestSeq.current) setError(String(e));
+      });
   };
 
   useEffect(() => {
@@ -62,7 +75,7 @@ export default function ProductsPage() {
     try {
       await createProduct({ name: form.name.trim(), price: form.price.trim() });
       setForm(emptyForm);
-      refresh({ page, search });
+      refresh();
     } catch (e) {
       setError(String(e));
     }
@@ -70,7 +83,7 @@ export default function ProductsPage() {
 
   const onDelete = async (id: number) => {
     await deleteProduct(id);
-    refresh({ page, search });
+    refresh();
   };
 
   const startEdit = (p: Product) => {
@@ -88,7 +101,7 @@ export default function ProductsPage() {
     try {
       await updateProduct(id, { name: editForm.name.trim(), price: editForm.price.trim() });
       cancelEdit();
-      refresh({ page, search });
+      refresh();
     } catch (e) {
       setError(String(e));
     }
