@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createItem, deleteItem, listItems, updateItem, type Item } from "./api";
 import EntityAuditPage from "./EntityAuditPage";
 import EntityDetailPage from "./EntityDetailPage";
@@ -24,15 +24,28 @@ export default function ItemsPage() {
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
+  // Handlers that await a save call refresh() later; read page/search from refs so they
+  // reload what is on screen now, not what was there when the save started.
+  const pageRef = useRef(page);
+  const searchRef = useRef(search);
+  pageRef.current = page;
+  searchRef.current = search;
+  // Only the latest list request may update the table; older responses are dropped.
+  const requestSeq = useRef(0);
+
   const refresh = (opts?: { page?: number; search?: string }) => {
-    const p = opts?.page ?? page;
-    const s = opts?.search ?? search;
+    const p = opts?.page ?? pageRef.current;
+    const s = opts?.search ?? searchRef.current;
+    const seq = ++requestSeq.current;
     listItems({ page: p, search: s || undefined })
       .then((resp) => {
+        if (seq !== requestSeq.current) return;
         setItems(resp.results);
         setCount(resp.count);
       })
-      .catch((e) => setError(String(e)));
+      .catch((e) => {
+        if (seq === requestSeq.current) setError(String(e));
+      });
   };
 
   useEffect(() => {
@@ -54,12 +67,12 @@ export default function ItemsPage() {
     if (!name.trim()) return;
     await createItem(name.trim());
     setName("");
-    refresh({ page, search });
+    refresh();
   };
 
   const onDelete = async (id: number) => {
     await deleteItem(id);
-    refresh({ page, search });
+    refresh();
   };
 
   const startEdit = (item: Item) => {
@@ -76,7 +89,7 @@ export default function ItemsPage() {
     if (!editName.trim()) return;
     await updateItem(id, editName.trim());
     cancelEdit();
-    refresh({ page, search });
+    refresh();
   };
 
   if (viewer.view.mode === "detail") {
