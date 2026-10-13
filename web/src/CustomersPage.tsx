@@ -20,6 +20,7 @@ type FormState = {
   email: string;
   phone: string;
   address: string;
+  notes: string;
 };
 
 const emptyForm: FormState = {
@@ -28,6 +29,7 @@ const emptyForm: FormState = {
   email: "",
   phone: "",
   address: "",
+  notes: "",
 };
 
 export default function CustomersPage() {
@@ -72,6 +74,7 @@ export default function CustomersPage() {
     first_name: f.first_name.trim(),
     last_name: f.last_name.trim(),
     email: f.email.trim(),
+    notes: f.notes.trim(),
     profile: { phone: f.phone.trim(), address: f.address.trim() },
   });
 
@@ -101,6 +104,7 @@ export default function CustomersPage() {
       email: c.email,
       phone: c.profile?.phone ?? "",
       address: c.profile?.address ?? "",
+      notes: c.notes ?? "",
     });
   };
 
@@ -151,7 +155,7 @@ export default function CustomersPage() {
         onSubmit={onAdd}
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr 1.2fr 1fr 1.2fr auto",
+          gridTemplateColumns: "1fr 1fr 1.2fr 1fr 1.2fr 1.5fr auto",
           gap: "0.5rem",
           marginBottom: "1rem",
           alignItems: "center",
@@ -187,6 +191,12 @@ export default function CustomersPage() {
           placeholder="Address"
           style={{ padding: "0.4rem" }}
         />
+        <input
+          value={form.notes}
+          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+          placeholder="Notes"
+          style={{ padding: "0.4rem" }}
+        />
         <button type="submit" style={primaryBtnStyle}>
           <i className="fa-solid fa-plus" style={{ marginRight: 6 }} />
           Add
@@ -209,6 +219,7 @@ export default function CustomersPage() {
             <th style={thStyle}>Email</th>
             <th style={thStyle}>Phone</th>
             <th style={thStyle}>Address</th>
+            <th style={thStyle}>Notes</th>
             <th style={thStyle}></th>
           </tr>
         </thead>
@@ -217,7 +228,7 @@ export default function CustomersPage() {
             <tr key={c.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
               {editingId === c.id ? (
                 <>
-                  {(["first_name", "last_name", "email", "phone", "address"] as const).map((k) => (
+                  {(["first_name", "last_name", "email", "phone", "address", "notes"] as const).map((k) => (
                     <td key={k} style={tdStyle}>
                       <input
                         value={editForm[k]}
@@ -244,6 +255,9 @@ export default function CustomersPage() {
                   <td style={tdStyle}>{c.email}</td>
                   <td style={tdStyle}>{c.profile?.phone ?? "—"}</td>
                   <td style={tdStyle}>{c.profile?.address ?? "—"}</td>
+                  <td style={tdStyle} data-testid="customer-notes">
+                    {c.notes || "—"}
+                  </td>
                   <td style={{ ...tdStyle, display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                     <button onClick={() => viewer.openDetail(c.id, `${c.first_name} ${c.last_name}`)} style={secondaryBtnStyle}>
                       <i className="fa-solid fa-eye" style={{ marginRight: 6 }} />
