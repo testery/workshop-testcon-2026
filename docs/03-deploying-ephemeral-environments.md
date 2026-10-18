@@ -1,5 +1,8 @@
 # Module 3: Deploying ephemeral environments
 
+> [!TIP]
+> Copy-paste commands for this module's labs, with the fixes from the rehearsal, are in [LAB-STEPS.md](LAB-STEPS.md) under **Module 3**.
+
 Two labs. 3a deploys your PR to Kubernetes and posts the URL back. 3b tears it down when the
 PR closes.
 

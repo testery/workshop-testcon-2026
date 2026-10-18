@@ -1,5 +1,8 @@
 # Module 5: Creating automated tests
 
+> [!TIP]
+> Copy-paste commands for this module's lab, with the fixes from the rehearsal, are in [LAB-STEPS.md](LAB-STEPS.md) under **Module 5**.
+
 **Lab (12 min): make the suite run against any URL, then run it against your preview.**
 
 ## Where we are

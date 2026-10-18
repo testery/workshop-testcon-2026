@@ -15,6 +15,11 @@ account, Git, and a browser. Docker Desktop and Node 20+ let you run things loca
 strongly recommended. Claude Code (with a Claude subscription or API key) is needed to do
 Module 7 yourself rather than watch.
 
+## Lab steps
+
+Every lab's commands, ready to copy and paste, are in [docs/LAB-STEPS.md](docs/LAB-STEPS.md).
+Keep it open on GitHub during the day.
+
 ## The app
 
 A small Django + React app with employees, customers, products and orders. Postgres behind
@@ -26,7 +31,7 @@ db/     Flyway SQL migrations (V1__..., V2__...) and the image that ships them
 web/    React 18 + Vite + TypeScript, served by nginx in containers
 k8s/    Kubernetes manifests for a preview environment (Module 3)
 .github/workflows/  CI and the preview pipeline
-docs/   One lab per module
+docs/   One lab per module, plus LAB-STEPS.md with copy-paste steps for every lab
 ```
 
 Run it locally:
