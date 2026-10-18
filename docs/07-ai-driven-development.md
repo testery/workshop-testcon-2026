@@ -1,5 +1,8 @@
 # Module 7: AI-driven development
 
+> [!TIP]
+> Copy-paste commands for this module's lab, with the fixes from the rehearsal, are in [LAB-STEPS.md](LAB-STEPS.md) under **Module 7**.
+
 **Lab (15 min): Claude Code builds a feature; the pipeline you built proves it.**
 
 ## Where we are

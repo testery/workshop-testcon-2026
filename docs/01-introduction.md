@@ -1,5 +1,8 @@
 # Module 1: Introduction
 
+> [!TIP]
+> Copy-paste commands for this module's lab, with the fixes from the rehearsal, are in [LAB-STEPS.md](LAB-STEPS.md) under **Module 1**.
+
 **Lab (10 min): make sure everything works before we need it.**
 
 ## Goal

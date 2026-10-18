@@ -1,5 +1,8 @@
 # Module 4: Test data
 
+> [!TIP]
+> Copy-paste commands for both labs are in [LAB-STEPS.md](LAB-STEPS.md) under **Module 4**. Lab 4b (watch Flyway apply a migration, on your local Docker stack) is only there.
+
 **Lab (15 min): seed every environment automatically, and prove it is safe to run twice.**
 
 ## Where we are

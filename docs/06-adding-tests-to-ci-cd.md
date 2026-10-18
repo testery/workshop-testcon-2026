@@ -1,5 +1,8 @@
 # Module 6: Adding tests to CI/CD
 
+> [!TIP]
+> Copy-paste commands for this module's lab, with the fixes from the rehearsal, are in [LAB-STEPS.md](LAB-STEPS.md) under **Module 6**.
+
 **Lab (15 min): run the suite on Testery from the pipeline, and block the PR when it fails.**
 
 ## Where we are

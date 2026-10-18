@@ -1,5 +1,8 @@
 # Module 2: Branching strategies
 
+> [!TIP]
+> Copy-paste commands for this module's lab, with the fixes from the rehearsal, are in [LAB-STEPS.md](LAB-STEPS.md) under **Module 2**.
+
 **Lab (10 min): a short-lived branch and a pull request.**
 
 ## Goal
