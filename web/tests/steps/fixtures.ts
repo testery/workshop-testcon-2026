@@ -8,4 +8,10 @@ export const test = base.extend<Fixtures>({
   },
 });
 
-export const { Given, When, Then } = createBdd(test);
+export const { Given, When, Then, AfterStep } = createBdd(test);
+
+// Screenshot the page after every step, so the report (and Testery) shows each screen the
+// scenario passed through, not just the last one.
+AfterStep(async ({ page, $step, $testInfo }) => {
+  await $testInfo.attach($step.title, { body: await page.screenshot(), contentType: "image/png" });
+});

@@ -596,7 +596,14 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // Maximize the browser window. Headed runs fill the screen; headless runs (CI,
+        // Testery) get a 1920x1080 window. A null viewport follows the window size.
+        viewport: null,
+        deviceScaleFactor: undefined,
+        launchOptions: { args: ["--start-maximized", "--window-size=1920,1080"] },
+      },
     },
   ],
   webServer: isLocal
