@@ -25,7 +25,7 @@ is running.
        baseURL,
        trace: "retain-on-failure",
        video: "retain-on-failure",
-       screenshot: "only-on-failure",
+       screenshot: "on",
        storageState: "tests/.auth/storage.json",
      },
      webServer: isLocal
