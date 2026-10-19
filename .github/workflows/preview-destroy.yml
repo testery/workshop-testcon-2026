@@ -1,0 +1,37 @@
+name: Preview Environment Teardown
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  EKS_CLUSTER: ${{ vars.EKS_CLUSTER }}
+  NAMESPACE: pr-${{ github.event.pull_request.number }}
+
+jobs:
+  destroy:
+    name: Delete the preview environment
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Authenticate to AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Point kubectl at the cluster
+        run: aws eks update-kubeconfig --name "$EKS_CLUSTER" --region "$AWS_REGION"
+
+      - name: Delete the namespace
+        run: kubectl delete namespace "$NAMESPACE" --ignore-not-found --timeout=300s
+
+      - name: Remove the Testery environment
+        continue-on-error: true
+        run: |
+          pip install --quiet --upgrade testery
+          testery delete-environment --token "${{ secrets.TESTERY_TOKEN }}" --key "$NAMESPACE"
