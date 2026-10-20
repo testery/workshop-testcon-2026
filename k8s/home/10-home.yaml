@@ -56,6 +56,7 @@ spec:
           volumeMounts:
             - { name: cfg, mountPath: /etc/nginx/conf.d/default.conf, subPath: default.conf }
             - { name: cfg, mountPath: /usr/share/nginx/html/index.html, subPath: index.html }
+            - { name: labsteps, mountPath: /usr/share/nginx/html/testcon-2026/notes.html, subPath: notes.html }
           readinessProbe:
             httpGet: { path: /healthz, port: 80 }
           resources:
@@ -64,6 +65,10 @@ spec:
       volumes:
         - name: cfg
           configMap: { name: workshop-home }
+        # Attendee lab steps, served at /testcon-2026/notes.html. Created by hand from the
+        # Drive build (see README); optional so the home page still starts without it.
+        - name: labsteps
+          configMap: { name: workshop-lab-steps, optional: true }
 ---
 apiVersion: v1
 kind: Service
