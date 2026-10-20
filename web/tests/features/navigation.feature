@@ -1,6 +1,6 @@
 Feature: App navigation
 
-  Scenario: User can navigate to the Employees page
+  Scenario: User can navigate to the Employeez page
     Given I am on the home page
     When I click the "Employees" menu item
     Then I should see the "Employees" heading
