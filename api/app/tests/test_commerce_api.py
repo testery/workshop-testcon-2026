@@ -6,6 +6,34 @@ from app.models import Customer, Order, Product
 
 
 @pytest.mark.django_db
+def test_create_customer_with_notes(api_client):
+    response = api_client.post(
+        "/api/customers/",
+        {
+            "first_name": "Mary",
+            "last_name": "Jackson",
+            "email": "mary@example.com",
+            "notes": "Prefers morning calls",
+        },
+        format="json",
+    )
+    assert response.status_code == 201, response.content
+    assert response.json()["notes"] == "Prefers morning calls"
+    assert Customer.objects.get(email="mary@example.com").notes == "Prefers morning calls"
+
+
+@pytest.mark.django_db
+def test_customer_notes_are_optional(api_client):
+    response = api_client.post(
+        "/api/customers/",
+        {"first_name": "Ada", "last_name": "Lovelace", "email": "ada@example.com"},
+        format="json",
+    )
+    assert response.status_code == 201, response.content
+    assert response.json()["notes"] == ""
+
+
+@pytest.mark.django_db
 def test_create_customer_with_profile(api_client):
     payload = {
         "first_name": "Ada",
@@ -18,6 +46,22 @@ def test_create_customer_with_profile(api_client):
     body = response.json()
     assert body["profile"] == {"phone": "555-0100", "address": "1 Analytical Way"}
     assert Customer.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_update_customer_notes(api_client):
+    customer = Customer.objects.create(
+        first_name="Ada", last_name="Lovelace", email="ada@example.com", notes=""
+    )
+    response = api_client.patch(
+        f"/api/customers/{customer.id}/",
+        {"notes": "Call after 2pm"},
+        format="json",
+    )
+    assert response.status_code == 200, response.content
+    assert response.json()["notes"] == "Call after 2pm"
+    customer.refresh_from_db()
+    assert customer.notes == "Call after 2pm"
 
 
 @pytest.mark.django_db
