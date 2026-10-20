@@ -29,3 +29,4 @@ jobs:
 
       - name: Delete the namespace
         run: kubectl delete namespace "$NAMESPACE" --ignore-not-found --timeout=300s
+        
