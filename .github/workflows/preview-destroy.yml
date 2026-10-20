@@ -1,0 +1,25 @@
+name: Preview Environment Teardown
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  EKS_CLUSTER: ${{ vars.EKS_CLUSTER }}
+  NAMESPACE: pr-${{ github.event.pull_request.number }}
+
+jobs:
+  destroy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - run: aws eks update-kubeconfig --name "$EKS_CLUSTER" --region "$AWS_REGION"
+      - run: kubectl delete namespace "$NAMESPACE" --ignore-not-found --timeout=300s
