@@ -1,4 +1,7 @@
+from datetime import date
+
 import pytest
+from django.utils import timezone
 
 from app.models import Employee, Item
 
@@ -82,6 +85,29 @@ def test_create_employee(api_client):
     assert body["first_name"] == "Ada"
     assert body["supervisor"] is None
     assert Employee.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_create_employee_defaults_hire_date_to_today(api_client):
+    response = api_client.post(
+        "/api/employees/",
+        {"first_name": "Ada", "last_name": "Lovelace", "age": 36},
+        format="json",
+    )
+    assert response.status_code == 201
+    assert response.json()["hire_date"] == timezone.localdate().isoformat()
+
+
+@pytest.mark.django_db
+def test_create_employee_with_hire_date(api_client):
+    response = api_client.post(
+        "/api/employees/",
+        {"first_name": "Ada", "last_name": "Lovelace", "age": 36, "hire_date": "2026-10-06"},
+        format="json",
+    )
+    assert response.status_code == 201
+    assert response.json()["hire_date"] == "2026-10-06"
+    assert Employee.objects.get().hire_date == date(2026, 10, 6)
 
 
 @pytest.mark.django_db
