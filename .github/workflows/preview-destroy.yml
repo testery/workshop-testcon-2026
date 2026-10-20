@@ -29,3 +29,8 @@ jobs:
 
       - name: Delete the namespace
         run: kubectl delete namespace "$NAMESPACE" --ignore-not-found --timeout=300s
+      - name: Remove the Testery environment
+        continue-on-error: true
+        run: |
+          pip install --quiet --upgrade testery
+          testery delete-environment --token "${{ secrets.TESTERY_TOKEN }}" --key "$NAMESPACE"
