@@ -99,8 +99,10 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
       - name: Point kubectl at the cluster
         run: aws eks update-kubeconfig --name "$EKS_CLUSTER" --region "$AWS_REGION"
+
       - name: Create or update the environment
         env:
           NAMESPACE: ${{ needs.build.outputs.namespace }}
@@ -113,6 +115,8 @@ jobs:
           BRANCH: ${{ github.head_ref }}
           CERT_ARN: ${{ vars.PREVIEW_CERT_ARN }}
         run: |
+          # envsubst fills in the ${...} placeholders; kubectl apply is idempotent, so the
+          # same command creates the environment the first time and updates it after that.
           for f in k8s/preview/*.yaml; do envsubst < "$f"; echo "---"; done | kubectl apply -f -
 
       - name: Wait for the database migration
@@ -130,10 +134,10 @@ jobs:
           for i in $(seq 1 60); do
             code=$(curl -s -o /dev/null -w '%{http_code}' "https://$HOST/api/health/" || true)
             if [ "$code" = "200" ]; then echo "https://$HOST is up"; exit 0; fi
-            echo "attempt $i: HTTP $code"; sleep 10
+            echo "attempt $i: HTTP $code, waiting for the load balancer rule and DNS..."; sleep 10
           done
-          exit 1
-      
+          echo "Preview never became healthy"; exit 1
+
       - name: Post the URL on the pull request
         uses: marocchino/sticky-pull-request-comment@v2
         with:
@@ -141,6 +145,9 @@ jobs:
           message: |
             ### Preview environment
             :rocket: **https://${{ needs.build.outputs.host }}**
+
+            Namespace `${{ needs.build.outputs.namespace }}` on `${{ env.EKS_CLUSTER }}`, built from `${{ needs.build.outputs.sha_short }}`.
+            It is redeployed on every push and deleted when this PR is closed.
 
       - name: Deploy (not implemented yet)
         run: |

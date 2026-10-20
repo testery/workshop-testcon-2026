@@ -1,4 +1,4 @@
-name: Preview Environment Teardown
+git name: Preview Environment Teardown
 
 on:
   pull_request:
