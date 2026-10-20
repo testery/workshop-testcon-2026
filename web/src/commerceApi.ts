@@ -7,6 +7,7 @@ export type Customer = {
   first_name: string;
   last_name: string;
   email: string;
+  notes: string;
   profile: CustomerProfile | null;
   created_at: string;
 };
@@ -15,6 +16,7 @@ export type CustomerInput = {
   first_name: string;
   last_name: string;
   email: string;
+  notes?: string;
   profile?: CustomerProfile;
 };
 
