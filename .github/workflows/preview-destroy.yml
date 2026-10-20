@@ -1,4 +1,4 @@
-git name: Preview Environment Teardown
+name: Preview Environment Teardown
 
 on:
   pull_request:
@@ -15,11 +15,17 @@ env:
 
 jobs:
   destroy:
+    name: Delete the preview environment
     runs-on: ubuntu-24.04
     steps:
-      - uses: aws-actions/configure-aws-credentials@v4
+      - name: Authenticate to AWS
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
-      - run: aws eks update-kubeconfig --name "$EKS_CLUSTER" --region "$AWS_REGION"
-      - run: kubectl delete namespace "$NAMESPACE" --ignore-not-found --timeout=300s
+
+      - name: Point kubectl at the cluster
+        run: aws eks update-kubeconfig --name "$EKS_CLUSTER" --region "$AWS_REGION"
+
+      - name: Delete the namespace
+        run: kubectl delete namespace "$NAMESPACE" --ignore-not-found --timeout=300s
