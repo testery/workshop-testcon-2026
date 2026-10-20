@@ -148,3 +148,52 @@ jobs:
 
             Namespace `${{ needs.build.outputs.namespace }}` on `${{ env.EKS_CLUSTER }}`, built from `${{ needs.build.outputs.sha_short }}`.
             It is redeployed on every push and deleted when this PR is closed.
+  e2e:
+    name: End-to-end tests on Testery
+    needs: [build, deploy]
+    runs-on: ubuntu-24.04
+    env:
+      TESTERY_TOKEN: ${{ secrets.TESTERY_TOKEN }}
+      TESTERY_PROJECT: ${{ vars.TESTERY_PROJECT_KEY }}
+      ENV_KEY: ${{ needs.build.outputs.namespace }}
+      HOST: ${{ needs.build.outputs.host }}
+      BUILD_ID: ${{ needs.build.outputs.sha_short }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the Testery CLI
+        run: pip install --quiet --upgrade testery
+
+      - name: Register this preview as a Testery environment
+        run: |
+          testery create-environment --token "$TESTERY_TOKEN" --key "$ENV_KEY" \
+            --name "PR #${{ github.event.pull_request.number }} ${{ github.head_ref }}" \
+            --variable "BASE_URL=https://$HOST" --ignore-already-exists-error
+          testery update-environment --token "$TESTERY_TOKEN" --key "$ENV_KEY" \
+            --name "PR #${{ github.event.pull_request.number }} ${{ github.head_ref }}" \
+            --variable "BASE_URL=https://$HOST"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Generate the specs and upload this commit's tests
+        run: |
+          # playwright-bdd turns .feature files into Playwright specs (.features-gen); ship them with the bundle
+          (cd web && npm ci && npx bddgen)
+          (cd web && zip -qr ../tests.zip . -x 'node_modules/*' 'test-results/*' 'playwright-report/*' 'dist/*' 'tests/.auth/*')
+          testery upload-build-artifacts --token "$TESTERY_TOKEN" --project-key "$TESTERY_PROJECT" \
+            --build-id "$BUILD_ID" --branch "${{ github.head_ref }}" --path tests.zip
+
+      - name: Run the suite against the preview
+        run: |
+          testery create-test-run --token "$TESTERY_TOKEN" --project-key "$TESTERY_PROJECT" \
+            --environment-key "$ENV_KEY" --build-id "$BUILD_ID" \
+            --git-ref "${{ github.event.pull_request.head.sha }}" --git-branch "${{ github.head_ref }}" \
+            --status-name "Testery E2E" --wait-for-results --fail-on-failure --output pretty
