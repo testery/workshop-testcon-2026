@@ -43,16 +43,33 @@ async function addCustomer(
   email: string,
   phone: string,
   address: string,
+  notes = "",
 ) {
   await page.getByPlaceholder("First name").fill(first);
   await page.getByPlaceholder("Last name").fill(last);
   await page.getByPlaceholder("Email").fill(email);
   await page.getByPlaceholder("Phone").fill(phone);
   await page.getByPlaceholder("Address").fill(address);
+  await page.getByPlaceholder("Notes").fill(notes);
   await page.locator('form button[type="submit"]').click();
   await page.getByPlaceholder("Filter customers").fill(last);
   await expect(customerRow(page, first, last)).toBeVisible();
 }
+
+When(
+  "I add a customer with first name {string} last name {string} email {string} notes {string}",
+  async ({ page, testId }, first: string, last: string, email: string, notes: string) => {
+    await addCustomer(
+      page,
+      first,
+      suffixed(last, testId),
+      emailWithSuffix(email, testId),
+      "",
+      "",
+      notes,
+    );
+  },
+);
 
 When(
   "I add a customer with first name {string} last name {string} email {string} phone {string} address {string}",
@@ -105,6 +122,13 @@ Then(
     const row = customerRow(page, first, suffixed(last, testId));
     await expect(row).toBeVisible();
     await expect(row).toContainText(emailWithSuffix(email, testId));
+  },
+);
+
+Then(
+  "the customer {string} {string} should show notes {string}",
+  async ({ page, testId }, first: string, last: string, notes: string) => {
+    await expect(customerRow(page, first, suffixed(last, testId))).toContainText(notes);
   },
 );
 

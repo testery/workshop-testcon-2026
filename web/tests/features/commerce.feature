@@ -3,6 +3,12 @@ Feature: Customers, Products, and Orders
   Background:
     Given a unique test run id
 
+  Scenario: Add a customer with notes
+    Given I am on the Customers page
+    When I add a customer with first name "Katherine" last name "Johnson" email "katherine@example.com" notes "Prefers morning calls"
+    Then I should see a customer row for "Katherine" "Johnson" with email "katherine@example.com"
+    And the customer "Katherine" "Johnson" should show notes "Prefers morning calls"
+
   Scenario: Add a customer with profile
     Given I am on the Customers page
     When I add a customer with first name "Ada" last name "Lovelace" email "ada@example.com" phone "555-0100" address "1 Analytical Way"
