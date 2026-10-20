@@ -114,7 +114,6 @@ jobs:
           CERT_ARN: ${{ vars.PREVIEW_CERT_ARN }}
         run: |
           for f in k8s/preview/*.yaml; do envsubst < "$f"; echo "---"; done | kubectl apply -f -
-                - name: Wait for the database migration
       - name: Wait for the database migration
         run: kubectl -n "${{ needs.build.outputs.namespace }}" wait --for=condition=complete --timeout=600s "job/migrate-${{ needs.build.outputs.sha_short }}"
 
