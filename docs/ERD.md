@@ -34,6 +34,7 @@ erDiagram
         string first_name
         string last_name
         string email
+        text notes
         datetime created_at
     }
 
