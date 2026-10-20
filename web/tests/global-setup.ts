@@ -1,34 +1,25 @@
 import { chromium, type FullConfig } from "@playwright/test";
 
-const HEALTH_ATTEMPTS = 30;
-const HEALTH_INTERVAL_MS = 5_000;
-
-// A fresh preview environment can take a while to come up (database, migrations, API,
-// ingress), so wait for the health endpoint instead of assuming the app is ready.
-async function waitForReady(baseURL: string) {
-  const url = `${baseURL}/api/health/`;
-  let last = "no response";
-  for (let attempt = 1; attempt <= HEALTH_ATTEMPTS; attempt++) {
+// Readiness gate: a freshly deployed environment can answer 502/503 for a little while.
+// Poll the health endpoint instead of sleeping for an arbitrary number of seconds.
+async function waitForHealthy(baseURL: string, attempts = 30, delayMs = 5000) {
+  for (let i = 1; i <= attempts; i++) {
     try {
-      const resp = await fetch(url);
-      if (resp.status === 200) return;
-      last = `HTTP ${resp.status}`;
-    } catch (err) {
-      last = err instanceof Error ? err.message : String(err);
+      const res = await fetch(`${baseURL}/api/health/`);
+      if (res.ok) return;
+      console.log(`health check ${i}/${attempts}: HTTP ${res.status}`);
+    } catch (e) {
+      console.log(`health check ${i}/${attempts}: ${String(e)}`);
     }
-    console.log(`Waiting for ${url} (attempt ${attempt}/${HEALTH_ATTEMPTS}): ${last}`);
-    if (attempt < HEALTH_ATTEMPTS) {
-      await new Promise((resolve) => setTimeout(resolve, HEALTH_INTERVAL_MS));
-    }
+    await new Promise((r) => setTimeout(r, delayMs));
   }
-  throw new Error(
-    `${url} did not return 200 after ${HEALTH_ATTEMPTS} attempts (last: ${last}) - is the app running at ${baseURL}?`,
-  );
+  throw new Error(`${baseURL} did not become healthy`);
 }
 
 export default async function globalSetup(config: FullConfig) {
   const baseURL = config.projects[0].use.baseURL ?? "http://localhost:5173";
-  await waitForReady(baseURL);
+  await waitForHealthy(baseURL);
+
   const browser = await chromium.launch();
   const context = await browser.newContext();
   const page = await context.newPage();
