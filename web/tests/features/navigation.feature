@@ -1,9 +1,9 @@
 Feature: App navigation
 
-  Scenario: User can navigate to the Employeez page
+  Scenario: User can navigate to the Employees page
     Given I am on the home page
-    When I click the "Employeez" menu item
-    Then I should see the "Employeez" heading
+    When I click the "Employees" menu item
+    Then I should see the "Employees" heading
 
   Scenario: Authenticated user is shown in the header
     Given I am on the home page
@@ -18,4 +18,4 @@ Feature: App navigation
     Given I am on the home page
     When I click the "Dashboard" menu item
     Then I should see the "Dashboard" heading
-    And I should see the count of employeez
+    And I should see the count of employees
