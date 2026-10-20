@@ -1,21 +1,30 @@
 import { defineConfig, devices } from "@playwright/test";
 import { defineBddConfig } from "playwright-bdd";
 
+const baseURL = process.env.BASE_URL ?? "http://localhost:5173";
+const isLocal = !process.env.BASE_URL;
 const testDir = defineBddConfig({
   features: "tests/features/**/*.feature",
   steps: "tests/steps/**/*.ts",
 });
 
 export default defineConfig({
-  testDir,
-  reporter: [["html", { open: "never" }], ["list"]],
-  globalSetup: "./tests/global-setup.ts",
   use: {
-    baseURL: "http://localhost:5173",
-    trace: "on-first-retry",
-    video: "on",
+    baseURL,
+    trace: "retain-on-failure",
+    video: "retain-on-failure",
+    screenshot: "on",
     storageState: "tests/.auth/storage.json",
   },
+  webServer: isLocal
+    ? { command: "npm run dev", url: "http://localhost:5173", reuseExistingServer: !process.env.CI }
+    : undefined,
+  testDir,
+  retries: process.env.CI ? 1 : 0,
+  timeout: 45_000,
+  expect: { timeout: 10_000 },
+  reporter: [["html", { open: "never" }], ["list"]],
+  globalSetup: "./tests/global-setup.ts",
   projects: [
     {
       name: "chromium",
@@ -29,9 +38,5 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
-    command: "npm run dev",
-    url: "http://localhost:5173",
-    reuseExistingServer: !process.env.CI,
-  },
+
 });
