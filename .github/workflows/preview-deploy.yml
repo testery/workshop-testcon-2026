@@ -115,14 +115,16 @@ jobs:
         run: |
           for f in k8s/preview/*.yaml; do envsubst < "$f"; echo "---"; done | kubectl apply -f -
                 - name: Wait for the database migration
+      - name: Wait for the database migration
         run: kubectl -n "${{ needs.build.outputs.namespace }}" wait --for=condition=complete --timeout=600s "job/migrate-${{ needs.build.outputs.sha_short }}"
 
       - name: Wait for the rollout
         run: |
           kubectl -n "${{ needs.build.outputs.namespace }}" rollout status deploy/api --timeout=600s
-          kubectl -n "${{ needs.build.outputs.namespace }}" rollout status deploy/web --timeout=600s
+          kubectl -n "${{ needs.build.outputs.namespace }}" rollout status deploy/web --timeout=600s "job/migrate-${{ needs.build.outputs.sha_short }}"
 
-                - name: Wait until the URL answers
+
+      - name: Wait until the URL answers
         env:
           HOST: ${{ needs.build.outputs.host }}
         run: |
@@ -132,7 +134,8 @@ jobs:
             echo "attempt $i: HTTP $code"; sleep 10
           done
           exit 1
-                - name: Post the URL on the pull request
+      
+      - name: Post the URL on the pull request
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: preview
