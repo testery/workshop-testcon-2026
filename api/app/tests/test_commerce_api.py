@@ -35,6 +35,23 @@ def test_update_customer_profile(api_client):
 
 
 @pytest.mark.django_db
+def test_customer_notes_are_optional_and_editable(api_client):
+    response = api_client.post(
+        "/api/customers/",
+        {"first_name": "Ada", "last_name": "Lovelace", "email": "ada@example.com"},
+        format="json",
+    )
+    assert response.status_code == 201, response.content
+    assert response.json()["notes"] == ""
+    customer_id = response.json()["id"]
+    response = api_client.patch(
+        f"/api/customers/{customer_id}/", {"notes": "Prefers email"}, format="json"
+    )
+    assert response.status_code == 200, response.content
+    assert Customer.objects.get(id=customer_id).notes == "Prefers email"
+
+
+@pytest.mark.django_db
 def test_search_customers(api_client):
     Customer.objects.create(first_name="Ada", last_name="Lovelace", email="ada@example.com")
     Customer.objects.create(first_name="Grace", last_name="Hopper", email="grace@example.com")

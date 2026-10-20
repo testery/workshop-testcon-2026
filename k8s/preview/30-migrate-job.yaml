@@ -36,7 +36,7 @@ spec:
           image: ${API_IMAGE}
           command: ["sh", "-c"]
           args:
-            - python manage.py migrate --noinput
+            - python manage.py migrate --noinput && python manage.py seed_demo_data
           envFrom:
             - configMapRef: { name: app-config }
             - secretRef: { name: app-secrets }
