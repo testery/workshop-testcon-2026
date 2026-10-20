@@ -9,6 +9,12 @@ Feature: Customers, Products, and Orders
     Then I should see a customer row for "Ada" "Lovelace" with email "ada@example.com"
     And the customer "Ada" "Lovelace" should show phone "555-0100"
 
+  Scenario: Add a customer with notes
+    Given I am on the Customers page
+    When I add a customer with first name "Nora" last name "Notes" email "nora@example.com" and notes "Prefers email, never call before 10"
+    Then I should see a customer row for "Nora" "Notes" with email "nora@example.com"
+    And the customer "Nora" "Notes" should show notes "Prefers email, never call before 10"
+
   Scenario: Edit a customer's profile
     Given I am on the Customers page
     And a customer exists with first name "Grace" last name "Hopper" email "grace@example.com"
