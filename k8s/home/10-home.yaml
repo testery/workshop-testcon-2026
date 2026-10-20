@@ -29,9 +29,10 @@ data:
       <h1>Deploying and Testing Ephemeral Environments</h1>
       <p>Workshop with Chris Harbert, Founder &amp; CEO of Testery.</p>
       <div class="card"><h2>1. Register</h2><p>Fill in the short form so we can invite you to the GitHub repo and the Testery workspace: <a href="/register">testcon.testery.academy/register</a></p></div>
-      <div class="card"><h2>2. Repository</h2><p><a href="https://github.com/testery/workshop-testcon-2026">github.com/testery/workshop-testcon-2026</a> (private; you receive an invite after registering)</p></div>
-      <div class="card"><h2>3. Testery</h2><p><a href="https://app.testery.io">app.testery.io</a> (invite arrives by email)</p></div>
+      <div class="card"><h2>2. Repository</h2><p><a href="https://github.com/testery/workshop-testcon-2026">github.com/testery/workshop-testcon-2026</a> (accept the GitHub invite you get after registering, so your pull requests can deploy)</p></div>
+      <div class="card"><h2>3. Testery</h2><p><a href="https://testery.app">testery.app</a> (accept the emailed invitation first; if you already have a Testery login, open it in a private window)</p></div>
       <div class="card"><h2>Your preview environments</h2><p>Every pull request you open gets its own URL: <code>https://&lt;branch&gt;.testcon.testery.academy</code></p></div>
+      <div class="card"><h2>After the workshop</h2><p>Want help doing this at your company? <a href="https://testery.me/with-better-quality">Book 30 minutes with Chris</a></p></div>
     </main></body></html>
 ---
 apiVersion: apps/v1
