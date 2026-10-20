@@ -101,7 +101,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Point kubectl at the cluster
         run: aws eks update-kubeconfig --name "$EKS_CLUSTER" --region "$AWS_REGION"
-              - name: Create or update the environment
+      - name: Create or update the environment
         env:
           NAMESPACE: ${{ needs.build.outputs.namespace }}
           HOST: ${{ needs.build.outputs.host }}
