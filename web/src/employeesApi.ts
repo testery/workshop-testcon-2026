@@ -7,6 +7,7 @@ export type Employee = {
   age: number;
   supervisor: number | null;
   supervisor_name: string | null;
+  hire_date: string;
   created_at: string;
 };
 
@@ -15,6 +16,8 @@ export type EmployeeInput = {
   last_name: string;
   age: number;
   supervisor: number | null;
+  // YYYY-MM-DD. Left out on create, the API sets today.
+  hire_date?: string;
 };
 
 export async function listEmployees(

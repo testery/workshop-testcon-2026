@@ -23,9 +23,16 @@ type FormState = {
   last_name: string;
   age: string;
   supervisor: string;
+  hire_date: string;
 };
 
-const emptyForm: FormState = { first_name: "", last_name: "", age: "", supervisor: "" };
+const emptyForm: FormState = {
+  first_name: "",
+  last_name: "",
+  age: "",
+  supervisor: "",
+  hire_date: "",
+};
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -101,6 +108,8 @@ export default function EmployeesPage() {
     last_name: f.last_name.trim(),
     age: Number(f.age),
     supervisor: f.supervisor ? Number(f.supervisor) : null,
+    // Left blank, the field is omitted: the API defaults a new hire to today.
+    hire_date: f.hire_date || undefined,
   });
 
   const onAdd = async (e: React.FormEvent) => {
@@ -130,6 +139,7 @@ export default function EmployeesPage() {
       last_name: emp.last_name,
       age: String(emp.age),
       supervisor: emp.supervisor ? String(emp.supervisor) : "",
+      hire_date: emp.hire_date,
     });
   };
 
@@ -181,7 +191,7 @@ export default function EmployeesPage() {
         onSubmit={onAdd}
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr 80px 1fr auto",
+          gridTemplateColumns: "1fr 1fr 80px 150px 1fr auto",
           gap: "0.5rem",
           marginBottom: "1rem",
           alignItems: "center",
@@ -205,6 +215,14 @@ export default function EmployeesPage() {
           value={form.age}
           onChange={(e) => setForm({ ...form, age: e.target.value })}
           placeholder="Age"
+          style={{ padding: "0.4rem" }}
+        />
+        <input
+          type="date"
+          aria-label="Hire date"
+          title="Hire date (defaults to today)"
+          value={form.hire_date}
+          onChange={(e) => setForm({ ...form, hire_date: e.target.value })}
           style={{ padding: "0.4rem" }}
         />
         <select
@@ -239,6 +257,7 @@ export default function EmployeesPage() {
             <th style={thStyle}>First</th>
             <th style={thStyle}>Last</th>
             <th style={thStyle}>Age</th>
+            <th style={thStyle}>Hire date</th>
             <th style={thStyle}>Supervisor</th>
             <th style={thStyle}></th>
           </tr>
@@ -268,6 +287,15 @@ export default function EmployeesPage() {
                       min={0}
                       value={editForm.age}
                       onChange={(e) => setEditForm({ ...editForm, age: e.target.value })}
+                      style={{ width: "100%", padding: "0.3rem" }}
+                    />
+                  </td>
+                  <td style={tdStyle}>
+                    <input
+                      type="date"
+                      aria-label="Edit hire date"
+                      value={editForm.hire_date}
+                      onChange={(e) => setEditForm({ ...editForm, hire_date: e.target.value })}
                       style={{ width: "100%", padding: "0.3rem" }}
                     />
                   </td>
@@ -303,6 +331,7 @@ export default function EmployeesPage() {
                   <td style={tdStyle}>{emp.first_name}</td>
                   <td style={tdStyle}>{emp.last_name}</td>
                   <td style={tdStyle}>{emp.age}</td>
+                  <td style={tdStyle}>{emp.hire_date}</td>
                   <td style={tdStyle}>{emp.supervisor_name ?? "—"}</td>
                   <td style={{ ...tdStyle, display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                     <button onClick={() => viewer.openDetail(emp.id, `${emp.first_name} ${emp.last_name}`)} style={secondaryBtnStyle}>

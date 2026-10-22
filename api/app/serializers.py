@@ -74,6 +74,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "age",
             "supervisor",
             "supervisor_name",
+            "hire_date",
             "created_at",
         ]
         read_only_fields = ["id", "created_at", "supervisor_name"]

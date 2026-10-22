@@ -1,4 +1,5 @@
 import pytest
+from django.utils import timezone
 
 from app.models import Action, AuditEvent, Customer, CustomerProfile, Employee, Item
 
@@ -79,6 +80,7 @@ def test_employee_create_uses_camel_cased_keys(api_client):
         "newLastName": "Lovelace",
         "newAge": 36,
         "newSupervisor": None,
+        "newHireDate": timezone.localdate().isoformat(),
     }
 
 

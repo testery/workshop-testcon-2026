@@ -1,6 +1,7 @@
 import secrets
 
 from django.db import models
+from django.utils import timezone
 
 # The application schema is owned by Flyway (db/migrations). These models are `managed = False`:
 # Django reads and writes the tables but never creates or alters them, so a schema change is a
@@ -34,6 +35,7 @@ class Employee(models.Model):
         on_delete=models.SET_NULL,
         related_name="reports",
     )
+    hire_date = models.DateField(default=timezone.localdate)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

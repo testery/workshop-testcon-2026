@@ -23,3 +23,11 @@ Feature: Manage employees
     Given an employee exists with first name "Erin" last name "Evans" age "35"
     When I delete the employee "Erin" "Evans"
     Then I should not see an employee row for "Erin" "Evans"
+
+  Scenario: Employee hired today
+    When I add an employee with first name "Fay" last name "Foster" age "29" without a hire date
+    Then the employee "Fay" "Foster" should show a hire date of today
+
+  Scenario: Employee hired two weeks ago
+    When I add an employee with first name "Gus" last name "Green" age "33" hired 14 days ago
+    Then the employee "Gus" "Green" should show a hire date 14 days ago
