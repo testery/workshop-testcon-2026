@@ -6,7 +6,7 @@ Feature: Manage employees
 
   Scenario: Add a new employee
     When I add an employee with first name "Alice" last name "Anderson" age "30"
-    Then I should see an employee row for "Alice" "Anderson" with age "32"
+    Then I should see an employee row for "Alice" "Anderson" with age "30"
 
   Scenario: Edit an employee
     Given an employee exists with first name "Bob" last name "Brown" age "40"
